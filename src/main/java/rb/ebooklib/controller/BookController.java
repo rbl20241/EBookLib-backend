@@ -115,6 +115,14 @@ public class BookController {
         return new ResponseEntity<>(pageDTO, HttpStatus.OK);
     }
 
+    @GetMapping("/genre")
+    public ResponseEntity<PageDTO<Book>> findByGenre(@RequestParam(value = "genre") final String genre,
+                                                     @RequestParam(value = "size", required = false, defaultValue = "10") final Integer size,
+                                                     @RequestParam(value = "pageNo", required = false, defaultValue = "1") final Integer pageNo) {
+        final PageDTO<Book> pageDTO = bookService.getBooksForGenre(genre, size, pageNo);
+        return new ResponseEntity<>(pageDTO, HttpStatus.OK);
+    }
+
     @GetMapping("/search")
     public ResponseEntity<PageDTO<Book>> searchBooksByTitleOrAuthor(@RequestParam(value = "query") final String query,
                                                                     @RequestParam(value = "size", required = false, defaultValue = "10") final Integer size,

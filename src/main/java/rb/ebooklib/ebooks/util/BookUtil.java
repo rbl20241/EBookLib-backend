@@ -17,7 +17,7 @@ import java.util.Date;
 import java.util.List;
 
 import static rb.ebooklib.ebooks.util.Constants.*;
-import static rb.ebooklib.ebooks.util.StringUtil.isBlank;
+import static rb.ebooklib.util.StringUtil.*;
 
 public class BookUtil {
 
@@ -94,7 +94,9 @@ public class BookUtil {
                         }
 
                         Author author = new Author(name);
-                        authors.add(author);
+                        if (!isAuthorAlreadyInList(authors, author)) {
+                            authors.add(author);
+                        }
                     }
                 }
             }
@@ -111,7 +113,9 @@ public class BookUtil {
                 for (int i = 0; i < metadata.getSubjects().size(); i++) {
                     if (isNotNullObject(metadata.getSubjects().get(i))) {
                         if (isNotNullOrEmptyString(metadata.getSubjects().get(i))) {
-                            categories.add(new Category(metadata.getSubjects().get(i)));
+                            Category category = new Category(metadata.getSubjects().get(i));
+                            category.setName(startWithCapital(category.getName()));
+                            categories.add(category);
                         }
                     }
                 }
@@ -307,6 +311,17 @@ public class BookUtil {
         Timestamp ts = new Timestamp(date.getTime());
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         return formatter.format(ts);
-}
+    }
+
+    public static boolean isAuthorAlreadyInList(final List<Author> authorList, final Author author) {
+        for (Author a : authorList) {
+            if (author.getName().equalsIgnoreCase(a.getName())) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
 
 }

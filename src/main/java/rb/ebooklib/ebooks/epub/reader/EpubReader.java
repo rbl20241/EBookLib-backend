@@ -8,7 +8,7 @@ import rb.ebooklib.ebooks.epub.domain.EpubBook;
 import rb.ebooklib.ebooks.epub.domain.Resource;
 import rb.ebooklib.ebooks.epub.domain.Resources;
 import rb.ebooklib.ebooks.util.ResourceUtil;
-import rb.ebooklib.ebooks.util.StringUtil;
+import rb.ebooklib.util.StringUtil;
 
 import java.io.IOException;
 import java.io.InputStream;

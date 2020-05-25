@@ -15,6 +15,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static rb.ebooklib.util.NullOrEmptyUtil.isNullOrEmpty;
+import static rb.ebooklib.util.StringUtil.startWithCapital;
 
 @Service
 public class GenreService {

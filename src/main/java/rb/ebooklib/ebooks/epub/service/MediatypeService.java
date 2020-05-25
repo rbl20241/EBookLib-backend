@@ -1,7 +1,7 @@
 package rb.ebooklib.ebooks.epub.service;
 
 import rb.ebooklib.ebooks.epub.domain.MediaType;
-import rb.ebooklib.ebooks.util.StringUtil;
+import rb.ebooklib.util.StringUtil;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -2,6 +2,10 @@ package rb.ebooklib.persistence;
 
 import org.springframework.data.jpa.domain.Specification;
 import rb.ebooklib.model.*;
+import rb.ebooklib.model.Author_;
+import rb.ebooklib.model.Book_;
+import rb.ebooklib.model.Category_;
+import rb.ebooklib.model.Genre_;
 
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Predicate;
@@ -37,6 +41,13 @@ public final class BookSpecifications {
         return (root, query, cb) -> {
             final Join<Book, Category> bookCategoryJoin = root.join(Book_.categories);
             return cb.equal(bookCategoryJoin.get(Category_.name), categoryName);
+        };
+    }
+
+    public static Specification<Book> bookHasGenreName(final String genreName) {
+        return (root, query, cb) -> {
+            final Join<Book, Genre> bookGenreJoin = root.join(Book_.genre);
+            return cb.equal(bookGenreJoin.get(Genre_.name), genreName);
         };
     }
 

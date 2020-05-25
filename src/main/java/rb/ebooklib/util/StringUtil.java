@@ -1,5 +1,9 @@
-package rb.ebooklib.ebooks.util;
+package rb.ebooklib.util;
 
+
+import rb.ebooklib.model.Author;
+
+import java.util.List;
 
 public class StringUtil {
 
@@ -131,4 +135,9 @@ public class StringUtil {
         }
         return text.substring(cPos + 1);
     }
+
+    public static String startWithCapital(final String value) {
+        return value.substring(0, 1).toUpperCase() + value.substring(1);
+    }
+
 }

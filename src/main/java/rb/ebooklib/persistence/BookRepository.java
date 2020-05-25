@@ -17,5 +17,5 @@ public interface BookRepository extends JpaRepository<Book, Long>, JpaSpecificat
 
     List<Author> findAuthorsByFilename(String filename);
 
-//    List<Book> findAllByOrderByLibraryMap();
+    List<Book> findAllByOrderByAuthor();
 }

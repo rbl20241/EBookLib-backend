@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import static rb.ebooklib.ebooks.util.StringUtil.isBlank;
+import static rb.ebooklib.util.StringUtil.isBlank;
 
 public class Spine implements Serializable {
 

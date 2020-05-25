@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import static rb.ebooklib.ebooks.epub.service.MediatypeService.EPUB;
-import static rb.ebooklib.ebooks.util.StringUtil.isNotBlank;
+import static rb.ebooklib.util.StringUtil.isNotBlank;
 
 public class Metadata {
 

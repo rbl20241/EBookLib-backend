@@ -1,6 +1,6 @@
 package rb.ebooklib.ebooks.epub.domain;
 
-import static rb.ebooklib.ebooks.util.StringUtil.isNotBlank;
+import static rb.ebooklib.util.StringUtil.isNotBlank;
 
 public class GuideReference extends TitledResourceReference {
 

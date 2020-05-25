@@ -12,8 +12,8 @@ import rb.ebooklib.dto.BookDTO;
 import rb.ebooklib.dto.PageDTO;
 import rb.ebooklib.ebooks.epub.domain.EpubBook;
 import rb.ebooklib.ebooks.epub.reader.EpubReader;
-import rb.ebooklib.ebooks.util.BookUtil;
 import rb.ebooklib.model.*;
+import rb.ebooklib.model.Book_;
 import rb.ebooklib.persistence.BookRepository;
 import rb.ebooklib.tree.BinaryTree;
 import rb.ebooklib.util.ViewObjectMappers;
@@ -25,11 +25,11 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static rb.ebooklib.ebooks.util.BookUtil.*;
 import static rb.ebooklib.persistence.BookSpecifications.*;
 import static rb.ebooklib.ebooks.util.Constants.CHARACTER_ENCODING;
+import static rb.ebooklib.util.StringUtil.startWithCapital;
 
 @Service
 public class BookService {
@@ -69,7 +69,7 @@ public class BookService {
         }
         else {
             final String root = getRoot();
-            final String genre = filename.substring(root.length()+1, filename.lastIndexOf(File.separator));
+            final String genre = startWithCapital(filename.substring(root.length()+1, filename.lastIndexOf(File.separator)));
             Book book = getBook(genre, filename);
             bookDb = createBook(book);
         }
@@ -245,7 +245,9 @@ public class BookService {
 
         List<Author> authorsDTO = bookDTO.getAuthors();
         for (Author author : authorsDTO) {
-            currentBook.getAuthors().add(author);
+            if (!isAuthorAlreadyInList(currentBook.getAuthors(), author)) {
+                currentBook.getAuthors().add(author);
+            }
         }
 
         return currentBook;
@@ -347,6 +349,12 @@ public class BookService {
         return new PageDTO<>(page);
     }
 
+    public PageDTO<Book> getBooksForGenre(final String genreName, final Integer size, final Integer pageNo) {
+        Page<Book> page = bookRepository
+                .findAll(bookHasGenreName(genreName), getPageRequestWithTitleSort(size, pageNo));
+        return new PageDTO<>(page);
+    }
+
     /**
      * Find books where the title or author contains a specified word/sentence.
      *
@@ -378,6 +386,7 @@ public class BookService {
 //    }
 
     private PageRequest getPageRequestWithTitleSort(int size, int pageNo) {
-        return PageRequest.of(pageNo - 1, size, Sort.by(Book_.title.getName()));
+//        return PageRequest.of(pageNo - 1, size, Sort.by(Book_.title.getName()));
+        return PageRequest.of(pageNo - 1, size, Sort.by(Book_.libraryMap.getName()).and(Sort.by(Book_.author.getName())).and(Sort.by(Book_.title.getName())));
     }
 }

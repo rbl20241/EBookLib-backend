@@ -1,7 +1,7 @@
 package rb.ebooklib.ebooks.epub.reader;
 
 import org.w3c.dom.*;
-import rb.ebooklib.ebooks.util.StringUtil;
+import rb.ebooklib.util.StringUtil;
 
 import java.util.ArrayList;
 import java.util.List;

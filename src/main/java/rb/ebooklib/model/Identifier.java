@@ -1,7 +1,7 @@
 package rb.ebooklib.model;
 
 import lombok.Data;
-import rb.ebooklib.ebooks.util.StringUtil;
+import rb.ebooklib.util.StringUtil;
 import rb.ebooklib.util.Scheme;
 
 import javax.persistence.Entity;
@@ -10,7 +10,7 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import java.util.UUID;
 
-import static rb.ebooklib.ebooks.util.StringUtil.defaultIfNull;
+import static rb.ebooklib.util.StringUtil.defaultIfNull;
 
 @Entity
 @Table(name = "identifier")

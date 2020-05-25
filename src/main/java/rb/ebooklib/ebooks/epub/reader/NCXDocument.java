@@ -19,7 +19,7 @@ import java.util.List;
 
 import static rb.ebooklib.ebooks.util.Constants.CHARACTER_ENCODING;
 import static rb.ebooklib.ebooks.util.Constants.FRAGMENT_SEPARATOR_CHAR;
-import static rb.ebooklib.ebooks.util.StringUtil.*;
+import static rb.ebooklib.util.StringUtil.*;
 
 class NCXDocument {
 

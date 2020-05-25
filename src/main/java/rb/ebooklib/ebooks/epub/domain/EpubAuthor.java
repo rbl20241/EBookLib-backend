@@ -1,6 +1,6 @@
 package rb.ebooklib.ebooks.epub.domain;
 
-import rb.ebooklib.ebooks.util.StringUtil;
+import rb.ebooklib.util.StringUtil;
 
 public class EpubAuthor {
 	

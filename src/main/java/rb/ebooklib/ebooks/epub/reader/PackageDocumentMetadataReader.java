@@ -17,7 +17,7 @@ import rb.ebooklib.ebooks.epub.domain.EpubAuthor;
 import rb.ebooklib.ebooks.epub.domain.Date;
 import rb.ebooklib.model.Identifier;
 import rb.ebooklib.ebooks.epub.domain.Metadata;
-import rb.ebooklib.ebooks.util.StringUtil;
+import rb.ebooklib.util.StringUtil;
 
 class PackageDocumentMetadataReader extends PackageDocumentBase {
 

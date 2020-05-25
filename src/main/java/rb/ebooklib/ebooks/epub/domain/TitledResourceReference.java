@@ -1,7 +1,7 @@
 package rb.ebooklib.ebooks.epub.domain;
 
 import static rb.ebooklib.ebooks.util.Constants.FRAGMENT_SEPARATOR_CHAR;
-import static rb.ebooklib.ebooks.util.StringUtil.isBlank;
+import static rb.ebooklib.util.StringUtil.isBlank;
 
 public class TitledResourceReference extends ResourceReference {
 
