@@ -124,14 +124,6 @@ public class BookService {
                 .filter(book -> !book.getTimestamp().equalsIgnoreCase(timestamp))
                 .collect(Collectors.toList())
                 .forEach(book -> removeBookWhenOrphan(book.getId()));
-
-//        List<Book> books = bookRepository.findAll();
-//        for (Book book: books) {
-//            if (!book.getTimestamp().equalsIgnoreCase(timestamp)) {
-//                removeBookWhenOrphan(book.getId());
-//            }
-//        }
-
     }
 
     @Transactional
