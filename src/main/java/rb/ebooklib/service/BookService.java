@@ -221,7 +221,11 @@ public class BookService {
     private Book convertFromApiToBook(Book book, BookDTO bookDTO) {
         Book currentBook = book;
 
-        if (isNullOrEmptyString(book.getImageLink())) {
+//        if (isNullOrEmptyString(book.getImageLink())) {
+//            currentBook.setImageLink(bookDTO.getImageLink());
+//        }
+
+        if (isNotNullOrEmptyString(bookDTO.getImageLink())) {
             currentBook.setImageLink(bookDTO.getImageLink());
         }
 
