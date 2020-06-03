@@ -13,7 +13,6 @@ import rb.ebooklib.dto.PageDTO;
 import rb.ebooklib.ebooks.epub.domain.EpubBook;
 import rb.ebooklib.ebooks.epub.reader.EpubReader;
 import rb.ebooklib.model.*;
-import rb.ebooklib.model.Book_;
 import rb.ebooklib.persistence.BookRepository;
 import rb.ebooklib.tree.BinaryTree;
 import rb.ebooklib.util.ViewObjectMappers;
@@ -27,8 +26,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static rb.ebooklib.ebooks.util.BookUtil.*;
-import static rb.ebooklib.persistence.BookSpecifications.*;
 import static rb.ebooklib.ebooks.util.Constants.CHARACTER_ENCODING;
+import static rb.ebooklib.persistence.BookSpecifications.*;
 import static rb.ebooklib.util.StringUtil.startWithCapital;
 
 @Service
@@ -64,13 +63,13 @@ public class BookService {
 
         Book bookDb;
         if (optionalBook.isPresent()) {
-            Book book = optionalBook.get();
-            bookDb = updateBook(book);
+            BookDTO bookDTO = viewObjectMappers.convertBookToBookDto(optionalBook.get());
+            bookDb = updateBook(bookDTO);
         }
         else {
             final String root = getRoot();
             final String genre = startWithCapital(filename.substring(root.length()+1, filename.lastIndexOf(File.separator)));
-            Book book = getBook(genre, filename);
+            Book book = getNewBook(genre, filename);
             bookDb = createBook(book);
         }
 
@@ -92,29 +91,57 @@ public class BookService {
     }
 
     @Transactional
-    private Book updateBook(final Book book) {
-        final Book currentBook = this.bookRepository.findById(book.getId())
-                .orElseThrow(() -> new EntityNotFoundException(String.format(BOOK_NOT_FOUND, book.getId())));
+    public Book updateBook(final BookDTO bookDTO) {
+        final Book currentBook = this.bookRepository.findById(bookDTO.getId())
+                .orElseThrow(() -> new EntityNotFoundException(String.format(BOOK_NOT_FOUND, bookDTO.getId())));
 
-        currentBook.setIsbn(book.getIsbn());
-        currentBook.setTitle(book.getTitle());
-        currentBook.setLibraryMap(book.getLibraryMap());
-        currentBook.setDescription(book.getDescription());
-        currentBook.setImageLink(book.getImageLink());
-        currentBook.setIdentifiers(book.getIdentifiers());
-        currentBook.getAuthors().size();
-        currentBook.getCategories().size();
-        final List<Category> checkOrphanCategories = currentBook.getCategories();
-        final List<Author> checkOrphanAuthors = currentBook.getAuthors();
-        final Genre checkOrphanGenre = currentBook.getGenre();
-        currentBook.setCategories(this.categoryService.mergeNewCategories(book.getCategories()));
-        currentBook.setAuthors(this.authorService.mergeNewAuthors(book.getAuthors()));
-        currentBook.setGenre(this.genreService.mergeNewGenre(book.getGenre()));
-        checkOrphanAuthors.forEach(author -> this.authorService.removeAuthorWhenOrphan(author.getId()));
-        checkOrphanCategories.forEach(category -> this.categoryService.removeCategoryWhenOrphan(category.getId()));
-        this.genreService.removeGenreWhenOrphan(checkOrphanGenre.getId());
+        currentBook.setDescription(bookDTO.getDescription());
+        currentBook.setImageLink(bookDTO.getImageLink());
+        currentBook.setCategories(bookDTO.getCategories());
+        currentBook.setAuthors(bookDTO.getAuthors());
+        if (isNullOrEmptyString(currentBook.getIsbn()) && isNotNullOrEmptyString(bookDTO.getIsbn())) {
+            String isbn = convertIsbn10ToIsbn13(bookDTO.getIsbn());
+            currentBook.setIsbn(isbn);
+            boolean haveImageLink = currentBook.getImageLink().startsWith("http");
+            boolean readDescription = currentBook.getDescription().startsWith("Helaas geen beschrijving");
+            if (!haveImageLink || readDescription) {
+                Book bookApi = readApi(currentBook);
+                if (!haveImageLink) {
+                    currentBook.setImageLink(bookApi.getImageLink());
+                }
+                if (readDescription) {
+                    currentBook.setDescription(bookApi.getDescription());
+                }
 
-        return currentBook;
+                currentBook.getAuthors().size();
+                currentBook.setAuthors(bookApi.getAuthors());
+
+            }
+
+        }
+        else {
+            currentBook.setIsbn(bookDTO.getIsbn());
+        }
+
+        currentBook.setTitle(bookDTO.getTitle());
+        currentBook.setLibraryMap(bookDTO.getLibraryMap());
+        currentBook.setIdentifiers(bookDTO.getIdentifiers());
+        currentBook.setIsRead(bookDTO.getIsRead());
+        //currentBook.getCategories().size();
+//        final List<Category> checkOrphanCategories = currentBook.getCategories();
+//        final List<Author> checkOrphanAuthors = currentBook.getAuthors();
+//        final Genre checkOrphanGenre = currentBook.getGenre();
+//        currentBook.setCategories(this.categoryService.mergeNewCategories(bookDTO.getCategories()));
+//        currentBook.setAuthors(this.authorService.mergeNewAuthors(bookDTO.getAuthors()));
+//        // currentBook.setGenre(this.genreService.mergeNewGenre(bookDTO.getGenre()));
+//        currentBook.setGenre(this.genreService.mergeNewGenre(new Genre(bookDTO.getLibraryMap())));
+        currentBook.setGenre(bookDTO.getGenre());
+        currentBook.setTimestamp(bookDTO.getTimestamp());
+//        checkOrphanAuthors.forEach(author -> this.authorService.removeAuthorWhenOrphan(author.getId()));
+//        checkOrphanCategories.forEach(category -> this.categoryService.removeCategoryWhenOrphan(category.getId()));//
+//        this.genreService.removeGenreWhenOrphan(checkOrphanGenre.getId());
+
+        return bookRepository.save(currentBook);
     }
 
     @Transactional
@@ -142,13 +169,14 @@ public class BookService {
     }
 
     @Transactional
-    public Book getBook(String genre, String path) {
+    public Book getNewBook(String genre, String path) {
         Book book = new Book();
         book.setFilename(path);
         book.setAuthor(getAuthor(path));;
         book.setLibraryMap(genre);
         book.setGenre(new Genre(genre));
         book.setExtension(getExtension(path));
+        book.setIsRead("N");
         if (isEpub(path)) {
             book = readEpubBook(book, path);
         }
@@ -176,11 +204,7 @@ public class BookService {
             EpubBook epubBook = (new EpubReader()).readEpub(new FileInputStream(currentFile), CHARACTER_ENCODING);
             Book currentBook = convertEpubBookToBook(book, epubBook);
 
-            if (isNotNullOrEmptyString(currentBook.getIsbn())) {
-                BookDTO bookDTO = googleApiService.searchBookByIsbn(currentBook.getIsbn());
-                currentBook = convertFromApiToBook(currentBook, bookDTO);
-            }
-
+            currentBook = readApi(currentBook);
             currentBook = addGenreToCategories(currentBook);
             currentBook = fillEmptyFields(currentBook);
 
@@ -221,7 +245,7 @@ public class BookService {
             currentBook.setImageLink(bookDTO.getImageLink());
         }
 
-        if (isNullOrEmptyString(book.getDescription())) {
+        if (isNullOrEmptyString(book.getDescription()) || book.getDescription().startsWith("Helaas geen beschrijving")) {
             currentBook.setDescription(bookDTO.getDescription());
         }
 
@@ -233,6 +257,15 @@ public class BookService {
             currentBook = addAuthors(book, bookDTO);
         }
 
+        return currentBook;
+    }
+
+    private Book readApi(Book book) {
+        Book currentBook = book;
+        if (isNotNullOrEmptyString(book.getIsbn())) {
+            BookDTO bookDTO = googleApiService.searchBookByIsbn(book.getIsbn());
+            currentBook = convertFromApiToBook(book, bookDTO);
+        }
         return currentBook;
     }
 

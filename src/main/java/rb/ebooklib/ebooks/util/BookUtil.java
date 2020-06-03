@@ -205,6 +205,10 @@ public class BookUtil {
             }
         }
 
+        if (isNullOrEmptyString(isbn)) {
+            isbn = "";
+        }
+
         return isbn;
     }
 

@@ -8,7 +8,9 @@ import rb.ebooklib.persistence.BookRepository;
 import rb.ebooklib.persistence.BookSpecifications;
 import rb.ebooklib.persistence.CategoryRepository;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static rb.ebooklib.util.NullOrEmptyUtil.isNullOrEmpty;
@@ -39,10 +41,27 @@ public class CategoryService {
      */
     @Transactional
     List<Category> mergeNewCategories(List<Category> newCategories) {
-        return newCategories.stream().filter(category -> !isNullOrEmpty(category.getName()))
+/*
+        List<Category> categoryList = new ArrayList<>();
+        for (Category category: newCategories) {
+            if (!isNullOrEmpty(category.getName())) {
+                // Optional<Category> currentCategory = categoryRepository.findOneByName(category.getName());
+                if (!categoryRepository.existsById(category.getId())) {
+                    categoryRepository.save(category);
+                }
+                categoryList.add(category);
+            }
+        }
+
+        return categoryList;
+*/
+
+
+        var collect = newCategories.stream().filter(category -> !isNullOrEmpty(category.getName()))
                 .map(category -> categoryRepository.findOneByName(category.getName())
                         .orElseGet(() -> categoryRepository.save(category)))
                 .collect(Collectors.toList());
+        return collect;
     }
 
     /**

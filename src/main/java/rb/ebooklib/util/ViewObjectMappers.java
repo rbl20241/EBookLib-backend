@@ -9,7 +9,10 @@ import rb.ebooklib.isbnapimodels.googleapi.VolumeInfo;
 import rb.ebooklib.isbnapimodels.openlibraryapi.OpenLibraryBookResponse;
 import rb.ebooklib.model.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static rb.ebooklib.predicate.GoogleApiPredicates.isIsbn13;
@@ -62,6 +65,8 @@ public class ViewObjectMappers {
         bookDTO.setExtension(book.getExtension());
         bookDTO.setDescription(book.getDescription());
         bookDTO.setIdentifiers(book.getIdentifiers());
+        bookDTO.setIsRead(book.getIsRead());
+        bookDTO.setTimestamp(book.getTimestamp());
 
         if (book.getAuthors() == null) {
             List<Author> authors = new ArrayList<>();
@@ -94,10 +99,13 @@ public class ViewObjectMappers {
         book.setLibraryMap(bookDTO.getLibraryMap());
         book.setImageLink(bookDTO.getImageLink());
         book.setGenre(bookDTO.getGenre());
+        book.setGenre(new Genre(bookDTO.getLibraryMap()));
         book.setPublisher(bookDTO.getPublisher());
         book.setExtension(bookDTO.getExtension());
         book.setDescription(bookDTO.getDescription());
         book.setIdentifiers(bookDTO.getIdentifiers());
+        book.setIsRead(bookDTO.getIsRead());
+        book.setTimestamp(bookDTO.getTimestamp());
 
         if (bookDTO.getAuthors() == null) {
             List<Author> authors = new ArrayList<>();
@@ -110,7 +118,8 @@ public class ViewObjectMappers {
 
         if (bookDTO.getCategories() == null) {
             List<Category> categories = new ArrayList<>();
-            categories.add(new Category(bookDTO.getGenre().getName()));
+//            categories.add(new Category(bookDTO.getGenre().getName()));
+            categories.add(new Category(bookDTO.getLibraryMap()));
             book.setCategories(categories);
         }
         else {

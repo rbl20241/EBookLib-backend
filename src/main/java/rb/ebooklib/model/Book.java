@@ -17,25 +17,28 @@ public class Book {
     private String isbn;
     private String author;
     private String title;
-    private String libraryMap;
     private String imageLink;
+    private String libraryMap;
     private String publisher;
     private String extension;
 
     @Column(length=10000)
     private String description;
 
+    private String isRead;
+
     @OneToMany(cascade=CascadeType.ALL, fetch=FetchType.LAZY)
     private List<Identifier> identifiers;
 
-    @ManyToOne(cascade = CascadeType.ALL)
-    private Genre genre;
-
-    @ManyToMany
+    @ManyToMany(cascade=CascadeType.ALL, fetch=FetchType.LAZY)
     private List<Author> authors;
 
-    @ManyToMany
+    @ManyToMany(cascade=CascadeType.ALL, fetch=FetchType.LAZY)
     private List<Category> categories;
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "genre_id")
+    private Genre genre;
 
     private String timestamp;
 

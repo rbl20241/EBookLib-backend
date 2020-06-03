@@ -69,7 +69,13 @@ public class BookController {
         }
     }
 
-//    public ResponseEntity<Book> createBook(@RequestBody final BookDTO bookDTO) {
+    @PutMapping("/update")
+    public ResponseEntity<Book> updateBook(@RequestBody final BookDTO bookDTO) {
+        final Book book = bookService.updateBook(bookDTO);
+        return new ResponseEntity<>(book, HttpStatus.OK);
+    }
+
+    //    public ResponseEntity<Book> createBook(@RequestBody final BookDTO bookDTO) {
 //        final Book book = bookService.createBookWithBookOwner(bookDTO);
 //        return new ResponseEntity<>(book, HttpStatus.OK);
 //    }
