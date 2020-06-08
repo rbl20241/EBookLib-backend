@@ -21,10 +21,15 @@ import javax.persistence.EntityNotFoundException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static rb.ebooklib.ebooks.util.BookUtil.*;
 import static rb.ebooklib.ebooks.util.Constants.CHARACTER_ENCODING;
 import static rb.ebooklib.persistence.BookSpecifications.*;
@@ -71,8 +76,8 @@ public class BookService {
         }
         else {
             final String root = getRoot();
-            final String genre = startWithCapital(filename.substring(root.length()+1, filename.lastIndexOf(File.separator)));
-            Book book = getNewBook(genre, filename);
+            final String librayMap = filename.substring(root.length()+1, filename.lastIndexOf(File.separator));
+            Book book = getNewBook(librayMap, filename);
             bookDb = createBook(book);
         }
 
@@ -180,12 +185,12 @@ public class BookService {
     }
 
     @Transactional
-    public Book getNewBook(String genre, String path) {
+    public Book getNewBook(String librayMap, String path) {
         Book book = new Book();
         book.setFilename(path);
         book.setAuthor(getAuthor(path));;
-        book.setLibraryMap(genre);
-        book.setGenre(new Genre(genre));
+        book.setLibraryMap(librayMap);
+        book.setGenre(new Genre(startWithCapital(librayMap)));
         book.setExtension(getExtension(path));
         book.setIsRead("N");
         if (isEpub(path)) {
@@ -448,5 +453,25 @@ public class BookService {
 
         return author;
     }
+
+    public void copyBook(final Book book, final String copyTo) {
+        String copyFrom = book.getFilename();
+        String libraryMap = book.getLibraryMap();
+        String newRoot = copyTo;
+        try {
+            Path source = Paths.get(copyFrom);
+            String pathTo = newRoot + File.separator + libraryMap;
+            Path target = Paths.get( pathTo+ File.separator + source.getFileName());
+            if (Files.notExists(Paths.get(pathTo))) {
+                Files.createDirectories(Paths.get(pathTo));
+            }
+            Files.copy(source, target, REPLACE_EXISTING);
+
+        } catch (IOException e) {
+            log.error(e.getMessage());
+        }
+    }
+
+
 
 }

@@ -56,7 +56,6 @@ public class EmailService {
     public void sendBook(final Book book, final String mailTo) {
         javaMailSender = getJavaMailSender();
 
-
         MimeMessage message = javaMailSender.createMimeMessage();
         MimeMessageHelper helper = null;
         try {

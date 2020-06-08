@@ -142,6 +142,14 @@ public class BookController {
         return new ResponseEntity<>(pageDTO, HttpStatus.OK);
     }
 
+    @GetMapping("/copy")
+    public ResponseEntity<Book> copyBook(@RequestParam(value = "bookId") final Long bookId,
+                                         @RequestParam(value = "copyTo") final String copyTo) {
+        final Book book = bookService.getById(bookId);
+        bookService.copyBook(book, copyTo);
+        return new ResponseEntity<>(book, HttpStatus.OK);
+    }
+
     @GetMapping("/mail")
     public ResponseEntity<Book> sendBook(@RequestParam(value = "bookId") final Long bookId,
                                          @RequestParam(value = "mailTo") final String mailTo) {
