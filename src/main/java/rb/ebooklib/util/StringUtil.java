@@ -139,4 +139,17 @@ public class StringUtil {
     public static String startWithCapital(final String value) {
         return value.substring(0, 1).toUpperCase() + value.substring(1);
     }
+
+    public static int nrOfChars(final String str, final char c) {
+        int count = 0;
+        int i = 0;
+        while (i < str.length()) {
+            if (str.charAt(i) == c) {
+                count++;
+            }
+            i++;
+        }
+        return count;
+    }
+
 }

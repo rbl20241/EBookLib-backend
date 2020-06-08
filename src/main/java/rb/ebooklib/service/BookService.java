@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 import static rb.ebooklib.ebooks.util.BookUtil.*;
 import static rb.ebooklib.ebooks.util.Constants.CHARACTER_ENCODING;
 import static rb.ebooklib.persistence.BookSpecifications.*;
+import static rb.ebooklib.util.StringUtil.nrOfChars;
 import static rb.ebooklib.util.StringUtil.startWithCapital;
 
 @Service
@@ -59,6 +60,8 @@ public class BookService {
     @Transactional
     public void updateDatasbase(final File file, final String timestamp) {
         final String filename = file.toPath().toString();
+        log.info("======> Boek " + filename);
+
         final Optional<Book> optionalBook = this.bookRepository.findOneByFilename(filename);
 
         Book bookDb;
@@ -99,25 +102,33 @@ public class BookService {
         currentBook.setImageLink(bookDTO.getImageLink());
         currentBook.setCategories(bookDTO.getCategories());
         currentBook.setAuthors(bookDTO.getAuthors());
-        if (isNullOrEmptyString(currentBook.getIsbn()) && isNotNullOrEmptyString(bookDTO.getIsbn())) {
+//        if (isNullOrEmptyString(currentBook.getIsbn()) && isNotNullOrEmptyString(bookDTO.getIsbn())) {
+        if (!currentBook.getIsbn().equals(bookDTO.getIsbn())) {
             String isbn = convertIsbn10ToIsbn13(bookDTO.getIsbn());
             currentBook.setIsbn(isbn);
             boolean haveImageLink = currentBook.getImageLink().startsWith("http");
             boolean readDescription = currentBook.getDescription().startsWith("Helaas geen beschrijving");
-            if (!haveImageLink || readDescription) {
-                Book bookApi = readApi(currentBook);
-                if (!haveImageLink) {
-                    currentBook.setImageLink(bookApi.getImageLink());
-                }
-                if (readDescription) {
-                    currentBook.setDescription(bookApi.getDescription());
-                }
-
-                currentBook.getAuthors().size();
-                currentBook.setAuthors(bookApi.getAuthors());
-
+            Book bookApi = readApi(currentBook);
+            if (!haveImageLink) {
+                currentBook.setImageLink(bookApi.getImageLink());
+            }
+            if (readDescription) {
+                currentBook.setDescription(bookApi.getDescription());
             }
 
+
+
+            int nrOfAuthors = currentBook.getAuthors().size();
+            currentBook.setAuthors(bookApi.getAuthors());
+
+            currentBook.getCategories().size();
+            currentBook.setCategories(bookApi.getCategories());
+
+            if (currentBook.getAuthor().equalsIgnoreCase("Onbekend")) {
+                if (nrOfAuthors > 0) {
+                    currentBook.setAuthor(readFirstAuthorFromAuthors(bookApi.getAuthors()));
+                }
+            }
         }
         else {
             currentBook.setIsbn(bookDTO.getIsbn());
@@ -418,4 +429,24 @@ public class BookService {
 //        return PageRequest.of(pageNo - 1, size, Sort.by(Book_.title.getName()));
         return PageRequest.of(pageNo - 1, size, Sort.by(Book_.libraryMap.getName()).and(Sort.by(Book_.author.getName())).and(Sort.by(Book_.title.getName())));
     }
+
+    private String readFirstAuthorFromAuthors(List<Author> authors) {
+        String author = "";
+        String authorName = authors.get(0).getName();
+        if (authorName.contains(",")) {
+            author = authorName;
+        }
+        else if (nrOfChars(authorName, ' ') == 1) {
+            int p = authorName.indexOf(' ');
+            String firstName = authorName.substring(0, p);
+            String lastName = authorName.substring(p+1);
+            author = lastName + ", " + firstName;
+        }
+        else {
+            author = authorName;
+        }
+
+        return author;
+    }
+
 }

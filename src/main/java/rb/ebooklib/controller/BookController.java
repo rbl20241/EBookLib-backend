@@ -10,6 +10,7 @@ import rb.ebooklib.dto.BookDTO;
 import rb.ebooklib.dto.PageDTO;
 import rb.ebooklib.model.Book;
 import rb.ebooklib.service.BookService;
+import rb.ebooklib.service.EmailService;
 import rb.ebooklib.service.ToolService;
 import rb.ebooklib.util.FilePath;
 
@@ -29,6 +30,9 @@ public class BookController {
 
     @Autowired
     private BookService bookService;
+
+    @Autowired
+    private EmailService emailService;
 
 //    @PostMapping
 //    public ResponseEntity<Book> createBook(@RequestBody final BookDTO bookDTO) {
@@ -113,6 +117,7 @@ public class BookController {
         final PageDTO<Book> pageDTO = bookService.getAllBooks(size, pageNo);
         return new ResponseEntity<>(pageDTO, HttpStatus.OK);
     }
+
     @GetMapping("/category")
     public ResponseEntity<PageDTO<Book>> findByCategory(@RequestParam(value = "category") final String category,
                                                         @RequestParam(value = "size", required = false, defaultValue = "10") final Integer size,
@@ -136,6 +141,15 @@ public class BookController {
         final PageDTO<Book> pageDTO = bookService.getBooksForTitleOrAuthor(query, size, pageNo);
         return new ResponseEntity<>(pageDTO, HttpStatus.OK);
     }
+
+    @GetMapping("/mail")
+    public ResponseEntity<Book> sendBook(@RequestParam(value = "bookId") final Long bookId,
+                                         @RequestParam(value = "mailTo") final String mailTo) {
+        final Book book = bookService.getById(bookId);
+        emailService.sendBook(book, mailTo);
+        return new ResponseEntity<>(book, HttpStatus.OK);
+    }
+
 
 //    @GetMapping("/my-books")
 //    public ResponseEntity<PageDTO<Book>> findMyBooks(@RequestParam(value = "size", required = false, defaultValue = "10") final Integer size,

@@ -3,19 +3,12 @@ package rb.ebooklib.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import rb.ebooklib.model.Author;
 import rb.ebooklib.model.Genre;
-import rb.ebooklib.persistence.AuthorRepository;
 import rb.ebooklib.persistence.BookRepository;
 import rb.ebooklib.persistence.BookSpecifications;
 import rb.ebooklib.persistence.GenreRepository;
 
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import static rb.ebooklib.util.NullOrEmptyUtil.isNullOrEmpty;
-import static rb.ebooklib.util.StringUtil.startWithCapital;
 
 @Service
 public class GenreService {

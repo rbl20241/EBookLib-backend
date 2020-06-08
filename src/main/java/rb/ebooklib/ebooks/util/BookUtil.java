@@ -241,8 +241,11 @@ public class BookUtil {
         return imageLink;
     }
 
-    public static String convertIsbn10ToIsbn13(String isbn) {
+    public static String convertIsbn10ToIsbn13(final String currentIsbn) {
         String isbn13 = "";
+
+        String isbn = currentIsbn.replace("-", "").trim();
+
         if (isbn.length() == 10) {
             String tmp = "978" + isbn.substring(0, 9);
             int sum = 0;

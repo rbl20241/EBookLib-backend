@@ -2,18 +2,26 @@ package rb.ebooklib.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.MailSendException;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import rb.ebooklib.model.Book;
+import rb.ebooklib.model.Settings;
+import rb.ebooklib.model.User;
 
-import java.util.Arrays;
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
+import java.io.File;
+import java.util.Properties;
 
-import static rb.ebooklib.util.NullOrEmptyUtil.isNullOrEmpty;
+import static rb.ebooklib.ebooks.util.BookUtil.isNullOrEmptyString;
 
 @Service
 @Slf4j
 public class EmailService {
+
+    private Settings settings;
 
     @Autowired
     private JavaMailSender javaMailSender;
@@ -21,47 +29,58 @@ public class EmailService {
     @Autowired
     private BookService bookService;
 
-//    public void sendReservationRequest(final Reservation reservation) {
-//        var requester = reservation.getBorrower().getEmail();
-//        var bookTitle = bookService.getById(reservation.getBookOwner().getBookId()).getTitle();
-//        var toAddress = reservation.getBookOwner().getOwner().getEmail();
-//
-//        final SimpleMailMessage msg = new SimpleMailMessage();
-//        msg.setTo(toAddress);
-//        msg.setSubject("Reservation request from the Ordina Library Sharing App");
-//        msg.setText(String.format("Reservation request for book: \n\n %s \n\n from the Ordina Library Sharing App \n Requested by: %s", bookTitle, requester));
-//        sendMessage(msg);
-//    }
-//
-//    public void sendReservationConfirmation(final Reservation reservation) {
-//        var owner = reservation.getBookOwner().getOwner().getEmail();
-//        var bookTitle = bookService.getById(reservation.getBookOwner().getBookId()).getTitle();
-//        var toAddress = reservation.getBorrower().getEmail();
-//
-//        final SimpleMailMessage msg = new SimpleMailMessage();
-//        msg.setTo(toAddress);
-//        msg.setSubject("Confirmation on reservation request from the Ordina Library Sharing App");
-//        String message = String.format("Confirmation on reservation request for book: \n\n %1$s \n\n from the Ordina Library Sharing App \n\nfrom: %2$s \n\nStatus: %3$s", bookTitle, owner, reservation.getStatus());
-//        if (!StringUtils.isEmpty(reservation.getDeclineReason())) {
-//            message = message + "\n\nReason: " + reservation.getDeclineReason();
-//        }
-//        msg.setText(message);
-//        sendMessage(msg);
-//    }
-//
-    private void sendMessage(final SimpleMailMessage msg) {
-        String subject;
-        if (!isNullOrEmpty(msg.getSubject()) && msg.getSubject().startsWith("Reservation request")) {
-            subject = "request";
-        } else {
-            subject = "confirmation";
-        }
+    @Autowired
+    private SettingsService settingsService;
+
+    @Autowired
+    private UserService userService;
+
+    private JavaMailSender getJavaMailSender() {
+        User user = userService.getCurrentlyLoggedInUser();
+        settings = settingsService.getByUserId(user.getId());
+        JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
+        mailSender.setHost(settings.getMailHost());
+        mailSender.setPort(Integer.parseInt(settings.getMailPort()));
+        mailSender.setUsername(settings.getMailUserName());
+        mailSender.setPassword(settings.getMailPassword());
+
+        Properties props = mailSender.getJavaMailProperties();
+        props.put("mail.transport.protocol", "smtp");
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.starttls.enable", "true");
+        props.put("mail.debug", "false");
+
+        return mailSender;
+    }
+
+    public void sendBook(final Book book, final String mailTo) {
+        javaMailSender = getJavaMailSender();
+
+
+        MimeMessage message = javaMailSender.createMimeMessage();
+        MimeMessageHelper helper = null;
         try {
-            javaMailSender.send(msg);
-        } catch (MailSendException mse) {
-            log.info(String
-                    .format("Email service not available!!!! Email message should be done by hand %s", msg.toString()));
+            helper = new MimeMessageHelper(message, true);
+            helper.setSubject("Je hebt het boek '" + book.getTitle()  + "' ontvangen");
+            helper.setFrom(settings.getMailUserName());
+            helper.setTo(isNullOrEmptyString(mailTo) ? settings.getMailTo() : mailTo);
+            helper.setReplyTo(settings.getMailUserName());
+            helper.setText(getText(book.getDescription()), true);
+            helper.addAttachment(book.getAuthor() + " - " + book.getTitle(), new File(book.getFilename()));
+            javaMailSender.send(message);
+        } catch (MessagingException e) {
+            e.printStackTrace();
         }
-        log.info(String.format("Reservation %s emailed to %s", subject, Arrays.toString(msg.getTo())));
+    }
+
+    private String getText(String description) {
+        StringBuilder content = new StringBuilder();
+        content.append("Hoi, <br/><br/>");
+        content.append("Je hebt bovenstaand boek ontvangen.<br><br>");
+        content.append(description);
+        content.append("<br/><br/>");
+        content.append("Veel leesplezier!");
+
+        return content.toString();
     }
 }
