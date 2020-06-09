@@ -29,7 +29,7 @@ class OAuth2ServerConfiguration {
     private static final String CLIENT_PASS_PROPERTY = "nl.librarysharing.oauth2.client_pass";
 
     private static final String[] PROTECTED_ENDPOINTS = {"/books/**", "/categories/**",
-            "/authors/**",  "/users/*", "/search/**", "/settings/**", "/calibre/**"};
+            "/authors/**",  "/users/*", "/search/**", "/settings/**"};
     private static final String[] AUTHORIZED_GRANT_TYPES = {"password", "refresh_token"};
     private static final String[] AUTHORITIES = {"USER"};
     private static final String[] SCOPES = {"read", "write"};

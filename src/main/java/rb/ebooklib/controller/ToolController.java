@@ -18,11 +18,13 @@ public class ToolController {
     @Autowired
     private ToolService toolService;
 
+/*
     @GetMapping("/calibre")
     public void openCalibre(@RequestParam(value = "bookId") final Long bookId) {
         log.info("CALIBRE");
         final Book book = toolService.getBookById(bookId);
     }
+*/
 
 
 }

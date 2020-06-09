@@ -32,6 +32,9 @@ public class BookController {
     private BookService bookService;
 
     @Autowired
+    private ToolService toolService;
+
+    @Autowired
     private EmailService emailService;
 
 //    @PostMapping
@@ -103,14 +106,6 @@ public class BookController {
         return new ResponseEntity<>(book, HttpStatus.OK);
     }
 
-    @PutMapping("/calibre/bookid")
-    public ResponseEntity<Book> openCalibre(@RequestParam(value = "bookId") final Long bookId) {
-        log.info("CALIBRE");
-        final Book book = bookService.getById(bookId);
-
-        return new ResponseEntity<>(book, HttpStatus.OK);
-    }
-
     @GetMapping
     public ResponseEntity<PageDTO<Book>> findAll(@RequestParam(value = "size", required = false, defaultValue = "10") final Integer size,
                                                  @RequestParam(value = "pageNo", required = false, defaultValue = "1") final Integer pageNo) {
@@ -155,6 +150,13 @@ public class BookController {
                                          @RequestParam(value = "mailTo") final String mailTo) {
         final Book book = bookService.getById(bookId);
         emailService.sendBook(book, mailTo);
+        return new ResponseEntity<>(book, HttpStatus.OK);
+    }
+
+    @GetMapping("/calibre")
+    public ResponseEntity<Book> openCalibre(@RequestParam(value = "bookId") final Long bookId) {
+        final Book book = bookService.getById(bookId);
+        toolService.runCalibre(book);
         return new ResponseEntity<>(book, HttpStatus.OK);
     }
 

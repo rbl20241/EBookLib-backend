@@ -27,9 +27,6 @@ public class EmailService {
     private JavaMailSender javaMailSender;
 
     @Autowired
-    private BookService bookService;
-
-    @Autowired
     private SettingsService settingsService;
 
     @Autowired
