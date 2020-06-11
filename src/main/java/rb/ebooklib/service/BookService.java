@@ -414,6 +414,12 @@ public class BookService {
         return new PageDTO<>(page);
     }
 
+    public PageDTO<Book> getBooksExtendedSearch(final String query,final String category,final String extension, final Integer size, final Integer pageNo) {
+        Page<Book> page = bookRepository
+                .findAll(bookExtendedSearch(query, category, extension), getPageRequestWithTitleSort(size, pageNo));
+        return new PageDTO<>(page);
+    }
+
     /**
      * Find books with the current user as owner.
      *

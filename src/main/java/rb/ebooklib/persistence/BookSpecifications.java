@@ -7,8 +7,9 @@ import rb.ebooklib.model.Book_;
 import rb.ebooklib.model.Category_;
 import rb.ebooklib.model.Genre_;
 
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.*;
+
+import static rb.ebooklib.util.StringUtil.isEmpty;
 
 public final class BookSpecifications {
 
@@ -60,5 +61,62 @@ public final class BookSpecifications {
             query.distinct(true);
             return cb.or(authorPredicate, titlePredicate);
         };
+    }
+
+    public static Specification<Book> bookExtendedSearch(final String queryString, final String category, final String extension) {
+        final String likeQueryString = String.format(LIKE_QUERY_FORMAT, queryString.toLowerCase());
+        return (root, query, cb) -> {
+            final Join<Book, Author> bookAuthorJoin = root.join(Book_.authors);
+            final Join<Book, Category> bookCategoryJoin = root.join(Book_.categories);
+            Predicate authorPredicate =  null;
+            Predicate titlePredicate = null;
+            Predicate categoryPredicate = null;
+            Predicate extensionPredicate = null;
+            Predicate authorOrTitlePredicate = null;
+
+            if (!isEmpty(queryString)) {
+                authorPredicate = cb.like(cb.lower(bookAuthorJoin.get(Author_.name)), likeQueryString);
+                titlePredicate = cb.like(cb.lower(root.get(Book_.title)), likeQueryString);
+                authorOrTitlePredicate = cb.or(authorPredicate, titlePredicate);
+            }
+
+            if (isSelected(category)) {
+                categoryPredicate = cb.like(cb.lower(bookCategoryJoin.get(Category_.name)), category);
+            }
+
+            if (isSelected(extension)) {
+                extensionPredicate = cb.like(cb.lower(root.get(Book_.extension)), extension);
+            }
+
+            query.distinct(true);
+            if (!isEmpty(queryString) && isSelected(category) && isSelected(extension)) {
+                return cb.and(authorOrTitlePredicate, categoryPredicate, extensionPredicate);
+            }
+            else if (!isEmpty(queryString) && isSelected(category) && !isSelected(extension)) {
+                return cb.and(authorOrTitlePredicate, categoryPredicate);
+            }
+            if (!isEmpty(queryString) && !isSelected(category) && isSelected(extension)) {
+                return cb.and(authorOrTitlePredicate, extensionPredicate);
+            }
+            if (!isEmpty(queryString) && !isSelected(category) && !isSelected(extension)) {
+                return authorOrTitlePredicate;
+            }
+            if (isEmpty(queryString) && isSelected(category) && isSelected(extension)) {
+                return cb.and(categoryPredicate, extensionPredicate);
+            }
+            if (isEmpty(queryString) && isSelected(category) && !isSelected(extension)) {
+                return categoryPredicate;
+            }
+            if (isEmpty(queryString) && !isSelected(category) && isSelected(extension)) {
+                return extensionPredicate;
+            }
+
+            return null;
+        };
+    }
+
+    private static boolean isSelected(String value) {
+        return !value.equalsIgnoreCase("undefined") &&
+               !(value.startsWith("--") && value.endsWith("--"));
     }
 }
