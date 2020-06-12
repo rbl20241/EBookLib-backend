@@ -63,24 +63,36 @@ public final class BookSpecifications {
         };
     }
 
-    public static Specification<Book> bookExtendedSearch(final String queryString, final String category, final String extension) {
+    public static Specification<Book> bookExtendedSearch(final String whatToSearch, final String queryString, final String genre, final String category, final String extension) {
         final String likeQueryString = String.format(LIKE_QUERY_FORMAT, queryString.toLowerCase());
+        final boolean searchInTitleAndAuthor = whatToSearch.equals("searchTitleOrAuthor");
+        final boolean searchInDescription = whatToSearch.equals("searchDescription");
         return (root, query, cb) -> {
-            final Join<Book, Author> bookAuthorJoin = root.join(Book_.authors);
-            final Join<Book, Category> bookCategoryJoin = root.join(Book_.categories);
             Predicate authorPredicate =  null;
             Predicate titlePredicate = null;
+            Predicate genrePredicate = null;
             Predicate categoryPredicate = null;
             Predicate extensionPredicate = null;
-            Predicate authorOrTitlePredicate = null;
+            Predicate queryPredicate = null;
 
-            if (!isEmpty(queryString)) {
+            if (searchInTitleAndAuthor && isSelected(queryString)) {
+                final Join<Book, Author> bookAuthorJoin = root.join(Book_.authors);
                 authorPredicate = cb.like(cb.lower(bookAuthorJoin.get(Author_.name)), likeQueryString);
                 titlePredicate = cb.like(cb.lower(root.get(Book_.title)), likeQueryString);
-                authorOrTitlePredicate = cb.or(authorPredicate, titlePredicate);
+                queryPredicate = cb.or(authorPredicate, titlePredicate);
+            }
+
+            if (searchInDescription && isSelected(queryString)) {
+                queryPredicate = cb.like(cb.lower(root.get(Book_.description)), likeQueryString);
+            }
+
+            if (isSelected(genre)) {
+                final Join<Book, Genre> bookGenreJoin = root.join(Book_.genre);
+                genrePredicate = cb.like(cb.lower(bookGenreJoin.get(Genre_.name)), genre);
             }
 
             if (isSelected(category)) {
+                final Join<Book, Category> bookCategoryJoin = root.join(Book_.categories);
                 categoryPredicate = cb.like(cb.lower(bookCategoryJoin.get(Category_.name)), category);
             }
 
@@ -89,25 +101,50 @@ public final class BookSpecifications {
             }
 
             query.distinct(true);
-            if (!isEmpty(queryString) && isSelected(category) && isSelected(extension)) {
-                return cb.and(authorOrTitlePredicate, categoryPredicate, extensionPredicate);
+
+            if (isSelected(queryString) && isSelected(genre) && isSelected(category) && isSelected(extension)) {
+                return cb.and(queryPredicate, genrePredicate, categoryPredicate, extensionPredicate);
             }
-            else if (!isEmpty(queryString) && isSelected(category) && !isSelected(extension)) {
-                return cb.and(authorOrTitlePredicate, categoryPredicate);
+            else if (isSelected(queryString) && isSelected(genre) && isSelected(category) && !isSelected(extension)) {
+                return cb.and(queryPredicate, genrePredicate, categoryPredicate);
             }
-            if (!isEmpty(queryString) && !isSelected(category) && isSelected(extension)) {
-                return cb.and(authorOrTitlePredicate, extensionPredicate);
+            else if (isSelected(queryString) && isSelected(genre) && !isSelected(category) && isSelected(extension)) {
+                return cb.and(queryPredicate, genrePredicate, extensionPredicate);
             }
-            if (!isEmpty(queryString) && !isSelected(category) && !isSelected(extension)) {
-                return authorOrTitlePredicate;
+            else if (isSelected(queryString) && isSelected(genre) && !isSelected(category) && !isSelected(extension)) {
+                return cb.and(queryPredicate, genrePredicate);
             }
-            if (isEmpty(queryString) && isSelected(category) && isSelected(extension)) {
+            else if (isSelected(queryString) && !isSelected(genre) && isSelected(category) && isSelected(extension)) {
+                return cb.and(queryPredicate, categoryPredicate, extensionPredicate);
+            }
+            else if (isSelected(queryString) && !isSelected(genre) && isSelected(category) && !isSelected(extension)) {
+                return cb.and(queryPredicate, categoryPredicate);
+            }
+            else if (isSelected(queryString) && !isSelected(genre) && !isSelected(category) && isSelected(extension)) {
+                return cb.and(queryPredicate, extensionPredicate);
+            }
+            else if (isSelected(queryString) && !isSelected(genre) && !isSelected(category) && !isSelected(extension)) {
+                return queryPredicate;
+            }
+            else if (!isSelected(queryString) && isSelected(genre) && isSelected(category) && isSelected(extension)) {
+                return cb.and(genrePredicate, categoryPredicate, extensionPredicate);
+            }
+            else if (!isSelected(queryString) && isSelected(genre) && isSelected(category) && !isSelected(extension)) {
+                return cb.and(genrePredicate, categoryPredicate);
+            }
+            else if (!isSelected(queryString) && isSelected(genre) && !isSelected(category) && isSelected(extension)) {
+                return cb.and(genrePredicate, extensionPredicate);
+            }
+            else if (!isSelected(queryString) && isSelected(genre) && !isSelected(category) && !isSelected(extension)) {
+                return genrePredicate;
+            }
+            else if (!isSelected(queryString) && !isSelected(genre) && isSelected(category) && isSelected(extension)) {
                 return cb.and(categoryPredicate, extensionPredicate);
             }
-            if (isEmpty(queryString) && isSelected(category) && !isSelected(extension)) {
+            else if (!isSelected(queryString) && !isSelected(genre) && isSelected(category) && !isSelected(extension)) {
                 return categoryPredicate;
             }
-            if (isEmpty(queryString) && !isSelected(category) && isSelected(extension)) {
+            else if (!isSelected(queryString) && !isSelected(genre) && !isSelected(category) && isSelected(extension)) {
                 return extensionPredicate;
             }
 
@@ -116,7 +153,8 @@ public final class BookSpecifications {
     }
 
     private static boolean isSelected(String value) {
-        return !value.equalsIgnoreCase("undefined") &&
+        return !isEmpty(value) &&
+               !value.equalsIgnoreCase("undefined") &&
                !(value.startsWith("--") && value.endsWith("--"));
     }
 }

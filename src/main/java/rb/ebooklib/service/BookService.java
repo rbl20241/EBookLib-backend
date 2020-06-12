@@ -414,9 +414,9 @@ public class BookService {
         return new PageDTO<>(page);
     }
 
-    public PageDTO<Book> getBooksExtendedSearch(final String query,final String category,final String extension, final Integer size, final Integer pageNo) {
+    public PageDTO<Book> getBooksExtendedSearch(final String whatToSearch, final String query, final String genre, final String category,final String extension, final Integer size, final Integer pageNo) {
         Page<Book> page = bookRepository
-                .findAll(bookExtendedSearch(query, category, extension), getPageRequestWithTitleSort(size, pageNo));
+                .findAll(bookExtendedSearch(whatToSearch, query, genre, category, extension), getPageRequestWithTitleSort(size, pageNo));
         return new PageDTO<>(page);
     }
 
