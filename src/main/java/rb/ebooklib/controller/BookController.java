@@ -171,13 +171,4 @@ public class BookController {
         toolService.runCalibre(book);
         return new ResponseEntity<>(book, HttpStatus.OK);
     }
-
-
-//    @GetMapping("/my-books")
-//    public ResponseEntity<PageDTO<Book>> findMyBooks(@RequestParam(value = "size", required = false, defaultValue = "10") final Integer size,
-//                                                     @RequestParam(value = "pageNo", required = false, defaultValue = "1") final Integer pageNo) {
-//        final PageDTO<Book> pageDTO = bookService.findMyBooks(size, pageNo);
-//        return new ResponseEntity<>(pageDTO, HttpStatus.OK);
-//    }
-
 }
