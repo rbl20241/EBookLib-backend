@@ -130,14 +130,6 @@ public class BookController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<PageDTO<Book>> searchBooksByTitleOrAuthor(@RequestParam(value = "query") final String query,
-                                                                    @RequestParam(value = "size", required = false, defaultValue = "10") final Integer size,
-                                                                    @RequestParam(value = "pageNo", required = false, defaultValue = "1") final Integer pageNo) {
-            final PageDTO<Book> pageDTO = bookService.getBooksForTitleOrAuthor(query, size, pageNo);
-        return new ResponseEntity<>(pageDTO, HttpStatus.OK);
-    }
-
-    @GetMapping("/extendedsearch")
     public ResponseEntity<PageDTO<Book>> extendedSearchBooks(@RequestParam(value = "whatToSearch") final String whatToSearch,
                                                              @RequestParam(value = "query") final String query,
                                                              @RequestParam(value = "genre") final String genre,

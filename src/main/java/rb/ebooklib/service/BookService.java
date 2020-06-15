@@ -420,24 +420,7 @@ public class BookService {
         return new PageDTO<>(page);
     }
 
-    /**
-     * Find books with the current user as owner.
-     *
-     * @param size how many books needs to be returned
-     * @param pageNo the page number to calculate which set of books to return
-     * @return a PageDTO with the total number and list of Books.
-     */
-//    public PageDTO<Book> findMyBooks(final Integer size, final Integer pageNo) {
-//        return this.getBooksForOwner(this.userService.getCurrentUserId(), size, pageNo);
-//    }
-
-//    private PageDTO<Book> getBooksForOwner(final Long ownerId, final Integer size, final Integer pageNo) {
-//        Page<Book> page = bookRepository.findAll(bookHasOwnerId(ownerId), getPageRequestWithTitleSort(size, pageNo));
-//        return new PageDTO<>(page);
-//    }
-
     private PageRequest getPageRequestWithTitleSort(int size, int pageNo) {
-//        return PageRequest.of(pageNo - 1, size, Sort.by(Book_.title.getName()));
         return PageRequest.of(pageNo - 1, size, Sort.by(Book_.libraryMap.getName()).and(Sort.by(Book_.author.getName())).and(Sort.by(Book_.title.getName())));
     }
 
