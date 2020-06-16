@@ -118,7 +118,6 @@ public class ViewObjectMappers {
 
         if (bookDTO.getCategories() == null) {
             List<Category> categories = new ArrayList<>();
-//            categories.add(new Category(bookDTO.getGenre().getName()));
             categories.add(new Category(bookDTO.getLibraryMap()));
             book.setCategories(categories);
         }
@@ -133,7 +132,6 @@ public class ViewObjectMappers {
         final BookDTO bookDTO = new BookDTO();
 
         if (googleBookResponse.getTotalItems() > 0) {
-
             final VolumeInfo volumeInfo = googleBookResponse.getItems().get(0).getVolumeInfo();
             bookDTO.setTitle(volumeInfo.getTitle());
             if (!isNullOrEmpty(volumeInfo.getAuthors())) {

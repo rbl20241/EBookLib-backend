@@ -12,7 +12,6 @@ import rb.ebooklib.model.Book;
 import rb.ebooklib.service.BookService;
 import rb.ebooklib.service.EmailService;
 import rb.ebooklib.service.ToolService;
-import rb.ebooklib.util.FilePath;
 
 import java.io.File;
 import java.util.Arrays;
@@ -36,22 +35,6 @@ public class BookController {
 
     @Autowired
     private EmailService emailService;
-
-//    @PostMapping
-//    public ResponseEntity<Book> createBook(@RequestBody final BookDTO bookDTO) {
-//        if (bookDTO.getAuthors() == null) {
-//            List<Author> authors = new ArrayList<>();
-//            authors.add(new Author(bookDTO.getAuthor()));
-//            bookDTO.setAuthors(authors);
-//        }
-//        if (bookDTO.getCategories() == null) {
-//            List<Category> categories = new ArrayList<>();
-//            categories.add(new Category(bookDTO.getGenre()));
-//            bookDTO.setCategories(categories);
-//        }
-//        final Book book = bookService.createBookWithBookOwner(bookDTO);
-//        return new ResponseEntity<>(book, HttpStatus.OK);
-//    }
 
     @PostMapping
     public void createBooks() {
@@ -81,24 +64,6 @@ public class BookController {
         final Book book = bookService.updateBook(bookDTO);
         return new ResponseEntity<>(book, HttpStatus.OK);
     }
-
-    //    public ResponseEntity<Book> createBook(@RequestBody final BookDTO bookDTO) {
-//        final Book book = bookService.createBookWithBookOwner(bookDTO);
-//        return new ResponseEntity<>(book, HttpStatus.OK);
-//    }
-
-    /*
-    @PutMapping("/update")
-    public void updateBooks() {
-        bookService.updateBooks();
-    }
-
-*/
-//    @PutMapping("/update")
-//    public ResponseEntity<Book> updateBook(@RequestBody final BookDTO bookDTO) {
-//        final Book book = bookService.updateBook(bookDTO);
-//        return new ResponseEntity<>(book, HttpStatus.OK);
-//    }
 
     @GetMapping("/bookid")
     public ResponseEntity<Book> findById(@RequestParam(value = "bookId") final Long bookId) {
@@ -130,14 +95,14 @@ public class BookController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<PageDTO<Book>> extendedSearchBooks(@RequestParam(value = "whatToSearch") final String whatToSearch,
+    public ResponseEntity<PageDTO<Book>> searchBooks(@RequestParam(value = "whatToSearch") final String whatToSearch,
                                                              @RequestParam(value = "query") final String query,
                                                              @RequestParam(value = "genre") final String genre,
                                                              @RequestParam(value = "category") final String category,
                                                              @RequestParam(value = "extension") final String extension,
                                                              @RequestParam(value = "size", required = false, defaultValue = "10") final Integer size,
                                                              @RequestParam(value = "pageNo", required = false, defaultValue = "1") final Integer pageNo) {
-        final PageDTO<Book> pageDTO = bookService.getBooksExtendedSearch(whatToSearch, query, genre, category, extension, size, pageNo);
+        final PageDTO<Book> pageDTO = bookService.getSearchBooks(whatToSearch, query, genre, category, extension, size, pageNo);
         return new ResponseEntity<>(pageDTO, HttpStatus.OK);
     }
 

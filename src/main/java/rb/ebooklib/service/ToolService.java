@@ -51,4 +51,8 @@ public class ToolService {
 
     }
 
+    public void rename() {
+        log.info("---- RENAME ------");
+    }
+
 }

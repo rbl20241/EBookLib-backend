@@ -21,7 +21,6 @@ import javax.persistence.EntityNotFoundException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -65,8 +64,6 @@ public class BookService {
     @Transactional
     public void updateDatasbase(final File file, final String timestamp) {
         final String filename = file.toPath().toString();
-        log.info("======> Boek " + filename);
-
         final Optional<Book> optionalBook = this.bookRepository.findOneByFilename(filename);
 
         Book bookDb;
@@ -107,7 +104,6 @@ public class BookService {
         currentBook.setImageLink(bookDTO.getImageLink());
         currentBook.setCategories(bookDTO.getCategories());
         currentBook.setAuthors(bookDTO.getAuthors());
-//        if (isNullOrEmptyString(currentBook.getIsbn()) && isNotNullOrEmptyString(bookDTO.getIsbn())) {
         if (!currentBook.getIsbn().equals(bookDTO.getIsbn())) {
             String isbn = convertIsbn10ToIsbn13(bookDTO.getIsbn());
             currentBook.setIsbn(isbn);
@@ -120,8 +116,6 @@ public class BookService {
             if (readDescription) {
                 currentBook.setDescription(bookApi.getDescription());
             }
-
-
 
             int nrOfAuthors = currentBook.getAuthors().size();
             currentBook.setAuthors(bookApi.getAuthors());
@@ -143,19 +137,8 @@ public class BookService {
         currentBook.setLibraryMap(bookDTO.getLibraryMap());
         currentBook.setIdentifiers(bookDTO.getIdentifiers());
         currentBook.setIsRead(bookDTO.getIsRead());
-        //currentBook.getCategories().size();
-//        final List<Category> checkOrphanCategories = currentBook.getCategories();
-//        final List<Author> checkOrphanAuthors = currentBook.getAuthors();
-//        final Genre checkOrphanGenre = currentBook.getGenre();
-//        currentBook.setCategories(this.categoryService.mergeNewCategories(bookDTO.getCategories()));
-//        currentBook.setAuthors(this.authorService.mergeNewAuthors(bookDTO.getAuthors()));
-//        // currentBook.setGenre(this.genreService.mergeNewGenre(bookDTO.getGenre()));
-//        currentBook.setGenre(this.genreService.mergeNewGenre(new Genre(bookDTO.getLibraryMap())));
         currentBook.setGenre(bookDTO.getGenre());
         currentBook.setTimestamp(bookDTO.getTimestamp());
-//        checkOrphanAuthors.forEach(author -> this.authorService.removeAuthorWhenOrphan(author.getId()));
-//        checkOrphanCategories.forEach(category -> this.categoryService.removeCategoryWhenOrphan(category.getId()));//
-//        this.genreService.removeGenreWhenOrphan(checkOrphanGenre.getId());
 
         return bookRepository.save(currentBook);
     }
@@ -211,7 +194,6 @@ public class BookService {
             }
         }
 
-
         return book;
     }
 
@@ -250,27 +232,23 @@ public class BookService {
         return currentBook;
     }
 
-    private Book convertFromApiToBook(Book book, BookDTO bookDTO) {
+    private Book convertFromApiToBook(BookDTO bookApi, Book book) {
         Book currentBook = book;
 
-//        if (isNullOrEmptyString(book.getImageLink())) {
-//            currentBook.setImageLink(bookDTO.getImageLink());
-//        }
-
-        if (isNotNullOrEmptyString(bookDTO.getImageLink())) {
-            currentBook.setImageLink(bookDTO.getImageLink());
+        if (isNotNullOrEmptyString(bookApi.getImageLink())) {
+            currentBook.setImageLink(bookApi.getImageLink());
         }
 
         if (isNullOrEmptyString(book.getDescription()) || book.getDescription().startsWith("Helaas geen beschrijving")) {
-            currentBook.setDescription(bookDTO.getDescription());
+            currentBook.setDescription(bookApi.getDescription());
         }
 
-        if (isNotNullOrEmptyList(bookDTO.getCategories())) {
-            currentBook = addCategories(book, bookDTO);
+        if (isNotNullOrEmptyList(bookApi.getCategories())) {
+            currentBook = addCategories(book, bookApi);
         }
 
-        if (isNotNullOrEmptyList(bookDTO.getAuthors())) {
-            currentBook = addAuthors(book, bookDTO);
+        if (isNotNullOrEmptyList(bookApi.getAuthors())) {
+            currentBook = addAuthors(book, bookApi);
         }
 
         return currentBook;
@@ -280,8 +258,9 @@ public class BookService {
         Book currentBook = book;
         if (isNotNullOrEmptyString(book.getIsbn())) {
             BookDTO bookDTO = googleApiService.searchBookByIsbn(book.getIsbn());
-            currentBook = convertFromApiToBook(book, bookDTO);
+            currentBook = convertFromApiToBook(bookDTO, book);
         }
+
         return currentBook;
     }
 
@@ -400,23 +379,9 @@ public class BookService {
         return new PageDTO<>(page);
     }
 
-    /**
-     * Find books where the title or author contains a specified word/sentence.
-     *
-     * @param query  the word/sentence a user is searching for
-     * @param size   how many books needs to be returned
-     * @param pageNo the page number to calculate which set of books to return
-     * @return a PageDTO with the total number and list of Books.
-     */
-    public PageDTO<Book> getBooksForTitleOrAuthor(final String query, final Integer size, final Integer pageNo) {
+    public PageDTO<Book> getSearchBooks(final String whatToSearch, final String query, final String genre, final String category, final String extension, final Integer size, final Integer pageNo) {
         Page<Book> page = bookRepository
-                .findAll(bookHasTitleOrAuthor(query), getPageRequestWithTitleSort(size, pageNo));
-        return new PageDTO<>(page);
-    }
-
-    public PageDTO<Book> getBooksExtendedSearch(final String whatToSearch, final String query, final String genre, final String category,final String extension, final Integer size, final Integer pageNo) {
-        Page<Book> page = bookRepository
-                .findAll(bookExtendedSearch(whatToSearch, query, genre, category, extension), getPageRequestWithTitleSort(size, pageNo));
+                .findAll(searchBooks(whatToSearch, query, genre, category, extension), getPageRequestWithTitleSort(size, pageNo));
         return new PageDTO<>(page);
     }
 
