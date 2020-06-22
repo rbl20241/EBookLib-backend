@@ -2,6 +2,7 @@ package rb.ebooklib.util;
 
 import org.springframework.stereotype.Component;
 import rb.ebooklib.dto.BookDTO;
+import rb.ebooklib.dto.RenameDTO;
 import rb.ebooklib.dto.SettingsDTO;
 import rb.ebooklib.dto.UserDTO;
 import rb.ebooklib.isbnapimodels.googleapi.GoogleBookResponse;
@@ -186,6 +187,23 @@ public class ViewObjectMappers {
         }
 
         return bookDTO;
+    }
+    
+    public Rename convertRenameDtoToRename(RenameDTO renameDTO) {
+        Rename rename = new Rename();
+
+        rename.setId(renameDTO.getId());
+        rename.setUserId(renameDTO.getUserId());
+        rename.setSourceMap(renameDTO.getSourceMap());
+        rename.setSourceTitleAuthorSeparator(renameDTO.getSourceTitleAuthorSeparator());
+        rename.setSourceAuthornameSeparator(renameDTO.getSourceAuthornameSeparator());
+        rename.setSourceFormat(renameDTO.getSourceFormat());
+        rename.setDestMap(renameDTO.getDestMap());
+        rename.setDestTitleAuthorSeparator(renameDTO.getDestTitleAuthorSeparator());
+        rename.setDestAuthornameSeparator(renameDTO.getDestAuthornameSeparator());
+        rename.setDestFormat(renameDTO.getDestFormat());
+        
+        return rename;
     }
 
 }

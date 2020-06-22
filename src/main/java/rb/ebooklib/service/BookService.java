@@ -14,7 +14,6 @@ import rb.ebooklib.ebooks.epub.domain.EpubBook;
 import rb.ebooklib.ebooks.epub.reader.EpubReader;
 import rb.ebooklib.model.*;
 import rb.ebooklib.persistence.BookRepository;
-import rb.ebooklib.tree.BinaryTree;
 import rb.ebooklib.util.ViewObjectMappers;
 
 import javax.persistence.EntityNotFoundException;
@@ -58,8 +57,6 @@ public class BookService {
     private GoogleApiService googleApiService;
 
     private static final String BOOK_NOT_FOUND = "Book with id %d not found";
-
-    private BinaryTree rootTree;
 
     @Transactional
     public void updateDatasbase(final File file, final String timestamp) {

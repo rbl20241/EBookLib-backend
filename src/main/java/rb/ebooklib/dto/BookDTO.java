@@ -21,7 +21,6 @@ public class BookDTO {
     private String extension;
     private String description;
     private String isRead;
-    //private Genre genre;
     private List<Identifier> identifiers;
     private List<Author> authors;
     private List<Category> categories;
