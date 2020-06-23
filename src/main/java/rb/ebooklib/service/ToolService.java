@@ -1,5 +1,7 @@
 package rb.ebooklib.service;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.commons.lang3.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,20 +9,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import rb.ebooklib.dto.RenameDTO;
-import rb.ebooklib.model.*;
-import rb.ebooklib.persistence.FormatRepository;
+import rb.ebooklib.exception.RenameException;
+import rb.ebooklib.model.Book;
+import rb.ebooklib.model.Rename;
+import rb.ebooklib.model.Settings;
+import rb.ebooklib.model.User;
 import rb.ebooklib.persistence.RenameRepository;
-import rb.ebooklib.persistence.SeparatorRepository;
-import rb.ebooklib.util.FormatTable;
-import rb.ebooklib.util.RenameUtil;
-import rb.ebooklib.util.SeparatorTable;
 import rb.ebooklib.util.ViewObjectMappers;
 
 import javax.persistence.EntityNotFoundException;
+import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class ToolService {
@@ -37,12 +40,6 @@ public class ToolService {
 
     @Autowired
     private RenameRepository renameRepository;
-
-    @Autowired
-    private SeparatorRepository separatorRepository;
-
-    @Autowired
-    private FormatRepository formatRepository;
 
     @Autowired
     private ViewObjectMappers viewObjectMappers;
@@ -71,54 +68,10 @@ public class ToolService {
         } catch (IOException e) {
             log.error(e.getMessage());
         }
-
     }
 
     @Transactional
-    public void initRename() {
-        final Boolean isSeparatorFilled = separatorRepository.count() > 0;
-        if (!isSeparatorFilled) {
-            fillSeparatorTable();
-        }
-
-        final Boolean isFormatFilled = formatRepository.count() > 0;
-        if (!isFormatFilled) {
-            fillFormatTable();
-        }
-    }
-
-    private void fillSeparatorTable() {
-        ArrayList<SeparatorTable> separatorTables = RenameUtil.getSeparators();
-        for (SeparatorTable separatorTable: separatorTables) {
-            separatorRepository.save(new Separator(separatorTable.getName(), separatorTable.getValue()));
-        }
-    }
-
-    private void fillFormatTable() {
-        ArrayList<FormatTable> formatTables = RenameUtil.getFormats();
-        for (FormatTable formatTable: formatTables) {
-            formatRepository.save(new Format(formatTable.getName(), formatTable.getValue()));
-        }
-    }
-
-    @Transactional
-    public List<Separator> getAllSeparators() {
-        return separatorRepository.findAll();
-    }
-
-    @Transactional
-    public Optional<Separator> getSeparatorByName(final String name) {
-        return separatorRepository.findOneByName(name);
-    }
-
-
-    @Transactional
-    public List<Format> getAllFormats() {
-        return formatRepository.findAll();
-    }
-
-    @Transactional
-    public Rename createRename(final RenameDTO renameDTO) {
+    public Rename saveRename(final RenameDTO renameDTO) {
         final User user = userService.getCurrentlyLoggedInUser();
         var dbRename = renameRepository.findOneByUserId(user.getId());
 
@@ -132,8 +85,7 @@ public class ToolService {
         }
     }
 
-    @Transactional
-    public Rename updateRename(final RenameDTO renameDTO) {
+    private Rename updateRename(final RenameDTO renameDTO) {
         final Rename rename = renameRepository.findById(renameDTO.getId())
                 .orElseThrow(() -> new EntityNotFoundException(String.format(RENAME_NOT_FOUND, renameDTO.getId())));
 
@@ -151,28 +103,16 @@ public class ToolService {
         return renameRepository.save(rename);
     }
 
-
     public Rename getByUserId(final Long userId) {
-//        Optional<Rename> renameOptional = renameRepository.findOneByUserId(userId);
-//        if (renameOptional.isPresent()) {
-//            return renameOptional.get();
-//        }
-        return this.renameRepository.findOneByUserId(userId).orElseThrow(() -> new EntityNotFoundException());
+        return renameRepository.findOneByUserId(userId).orElseGet(() -> getStandardRename(userId));
     }
     
-    public Rename getStandardRename(final Long userId) {
+    private Rename getStandardRename(final Long userId) {
         Rename rename = new Rename();
 
         User user = userService.getCurrentlyLoggedInUser();
         settings = settingsService.getByUserId(user.getId());
 
-//        Separator sourceTitleAuthorSeparator = separatorRepository.findOneByName("HYPHEN").get();
-//        Separator sourceAuthornameSeparator = separatorRepository.findOneByName("COMMA").get();
-//        Separator destTitleAuthorSeparator = separatorRepository.findOneByName("HYPHEN").get();
-//        Separator destAuthornameSeparator = separatorRepository.findOneByName("COMMA").get();
-//
-//        Format sourceFormat = formatRepository.findOneByName("tav").get();
-//        Format destFormat = formatRepository.findOneByName("avt").get();
         rename.setUserId(userId);
         rename.setSourceMap(settings.getLibraryMap());
         rename.setSourceTitleAuthorSeparator("DASH");
@@ -183,12 +123,172 @@ public class ToolService {
         rename.setDestTitleAuthorSeparator("DASH");
         rename.setDestAuthornameSeparator("COMMA");
         rename.setDestFormat("avt");
-        
+
         return rename;
     }
 
-    public void rename() {
-        log.info("---- RENAME ------");
+    public void runRename(final RenameDTO renameDTO) {
+        String sourceMap = renameDTO.getSourceMap();
+        String destMap = renameDTO.getDestMap();
+
+        Set<Path> sourceFiles = findSourceFilesAndDirs(sourceMap);
+        Path sourcePath = new File(sourceMap).toPath();
+        Map<Boolean, List<Path>> countsMap = sourceFiles.stream().collect(Collectors.partitioningBy(p -> Files.isDirectory(p)));
+        int dirsCount = countsMap.get(true).size() - 1;
+        int filesCount = countsMap.get(false).size();
+        log.info("Filters applied. " +
+                "Directories [" + ((dirsCount < 0) ? 0 : dirsCount) + "], " +
+                "Files [" + filesCount + "].");
+
+        // Thread.sleep(100);
+
+        try {
+            Files.walkFileTree(sourcePath, new SimpleFileVisitor<Path>() {
+                @Override
+                public FileVisitResult visitFile(Path path, BasicFileAttributes attrs) throws IOException {
+                    if (sourceFiles.contains(path)) {
+                        String destinationMap = destMap;
+                        File newFile;
+                        try {
+                            String newFileName = createNewFilename(path.toFile().getName(), renameDTO);
+                            newFile = new File(newFileName);
+                        }
+                        catch (RenameException e) {
+                            String failedMap = File.separator + "failed";
+                            destinationMap = destMap + failedMap;
+                            newFile = path.toFile();
+                        }
+
+                        File tempMap = new File(destinationMap);
+                        if (!tempMap.exists()) {
+                            tempMap.mkdir();
+                        }
+
+                        String dest = destinationMap + File.separator + newFile.getName();
+                        Path target = Paths.get(dest);
+                        CopyOption[] copyOptions = new CopyOption[] {StandardCopyOption.COPY_ATTRIBUTES, StandardCopyOption.REPLACE_EXISTING};
+                        Files.copy(path, target, copyOptions);
+                    }
+
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
+
+    private Set<Path> findSourceFilesAndDirs(final String root) {
+        File dir = new File(root);
+        Collection<File> col = FileUtils.listFilesAndDirs(dir, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE);
+
+        Set<Path> sourceFiles = new HashSet<>();
+        sourceFiles.add(dir.toPath());
+        for (File file : col) {
+            Path sourceFile = file.toPath();
+
+            sourceFiles.add(sourceFile);
+        }
+
+        return sourceFiles;
+    }
+
+    private String createNewFilename(final String curFilename, final RenameDTO renameDTO) throws RenameException {
+        String titel = "";
+        String achternaam = "";
+        String voornaam = "";
+        String filename = "";
+
+        int posExt = curFilename.lastIndexOf('.');
+        String extensie = curFilename.substring(posExt);
+        String currentFilename = curFilename.substring(0, posExt);
+        int pos1;
+        int pos2;
+
+        String sourceFormat = renameDTO.getSourceFormat();
+        String sourceSeparatorTitleAuthor = getSourceSeparator(renameDTO.getSourceTitleAuthorSeparator());
+        String sourceSeparatorAuthorname = getSourceSeparator(renameDTO.getSourceAuthornameSeparator());
+
+        try {
+            switch(sourceFormat) {
+                case "tva":
+                    pos1 = currentFilename.indexOf(sourceSeparatorTitleAuthor);
+                    pos2 = currentFilename.indexOf(sourceSeparatorAuthorname);
+                    titel = currentFilename.substring(0, pos1);
+                    if (sourceSeparatorAuthorname.equals(" ")) {
+                        currentFilename = currentFilename.substring(pos1+1).trim();
+                        pos1 = -1;
+                        pos2 = currentFilename.indexOf(sourceSeparatorAuthorname);
+                    }
+                    voornaam = currentFilename.substring(pos1+1, pos2);
+                    achternaam = currentFilename.substring(pos2+1);
+                    break;
+                case "tav":
+                    pos1 = currentFilename.indexOf(sourceSeparatorTitleAuthor);
+                    pos2 = currentFilename.indexOf(sourceSeparatorAuthorname);
+                    titel = currentFilename.substring(0, pos1);
+                    achternaam = currentFilename.substring(pos1+1, pos2);
+                    voornaam = currentFilename.substring(pos2+1);
+                    break;
+                case "vat":
+                    pos1 = currentFilename.indexOf(sourceSeparatorAuthorname);
+                    pos2 = currentFilename.indexOf(sourceSeparatorTitleAuthor);
+                    voornaam = currentFilename.substring(0, pos1);
+                    achternaam = currentFilename.substring(pos1+1, pos2);
+                    titel = currentFilename.substring(pos2+1);
+                    break;
+                case "avt":
+                    pos1 = currentFilename.indexOf(sourceSeparatorAuthorname);
+                    pos2 = currentFilename.indexOf(sourceSeparatorTitleAuthor);
+                    achternaam = currentFilename.substring(0, pos1);
+                    voornaam = currentFilename.substring(pos1+1, pos2);
+                    titel = currentFilename.substring(pos2+1);
+                    break;
+                default:
+                    break;
+            }
+        }
+        catch (Exception e) {
+            throw new RenameException();
+        }
+
+        titel = titel.trim();
+        achternaam = achternaam.trim();
+        voornaam = voornaam.trim();
+
+        String destFormat = renameDTO.getDestFormat();
+        String destSeparatorTitleAuthor = getDestSeparator(renameDTO.getDestTitleAuthorSeparator());
+        String destSeparatorAuthorname = getDestSeparator(renameDTO.getDestAuthornameSeparator());
+
+        switch(destFormat) {
+            case "tva":
+                filename = titel + destSeparatorTitleAuthor + voornaam + destSeparatorAuthorname + achternaam;
+                break;
+            case "tav":
+                filename = titel + destSeparatorTitleAuthor + achternaam + destSeparatorAuthorname + voornaam;
+                break;
+            case "vat":
+                filename = voornaam + destSeparatorAuthorname + achternaam + destSeparatorTitleAuthor + titel;
+                break;
+            case "avt":
+                filename = achternaam + destSeparatorAuthorname + voornaam + destSeparatorTitleAuthor + titel;
+                break;
+            default:
+                break;
+        }
+
+        filename = filename + extensie;
+
+        return filename;
+    }
+
+    private String getSourceSeparator(final String name) {
+        return name.equals("DASH") ? "-" : name.equals("COMMA") ? "," : name.equals("SPACE") ? " " : null;
+    }
+
+    private String getDestSeparator(final String name) {
+        return name.equals("DASH") ? " - " : name.equals("COMMA") ? ", " : name.equals("SPACE") ? " " : null;
+    }
+
 
 }
