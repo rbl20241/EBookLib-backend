@@ -10,6 +10,7 @@ import rb.ebooklib.persistence.SettingsRepository;
 import rb.ebooklib.util.ViewObjectMappers;
 
 import javax.persistence.EntityNotFoundException;
+import java.util.Optional;
 
 @Service
 public class SettingsService {
@@ -36,7 +37,7 @@ public class SettingsService {
     @Transactional
     public Settings createSettings(final SettingsDTO settingsDTO) {
         final User user = userService.getCurrentlyLoggedInUser();
-        var dbSettings = settingsRepository.findOneByUserId(user.getId());
+        Optional<Settings> dbSettings = settingsRepository.findOneByUserId(user.getId());
 
         if (dbSettings.isPresent()) {
             return updateSettings(settingsDTO);

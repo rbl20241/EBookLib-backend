@@ -8,14 +8,16 @@ public class TOCReference extends TitledResourceReference {
 
 	private List<TOCReference> children;
 
-	private static final Comparator<TOCReference> COMPARATOR_BY_TITLE_IGNORE_CASE = new Comparator<>() {
+//	private static final Comparator<TOCReference> COMPARATOR_BY_TITLE_IGNORE_CASE = new Comparator<>() {
+//
+//		@Override
+//		public int compare(TOCReference tocReference1, TOCReference tocReference2) {
+//			return String.CASE_INSENSITIVE_ORDER.compare(tocReference1.getTitle(), tocReference2.getTitle());
+//		}
+//	};
 
-		@Override
-		public int compare(TOCReference tocReference1, TOCReference tocReference2) {
-			return String.CASE_INSENSITIVE_ORDER.compare(tocReference1.getTitle(), tocReference2.getTitle());
-		}
-	};
-	
+	private static final Comparator<TOCReference> COMPARATOR_BY_TITLE_IGNORE_CASE = (tocReference1, tocReference2) -> String.CASE_INSENSITIVE_ORDER.compare(tocReference1.getTitle(), tocReference2.getTitle());
+
 	public TOCReference() {
 		this(null, null, null);
 	}

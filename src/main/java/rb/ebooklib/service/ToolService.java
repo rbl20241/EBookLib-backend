@@ -73,7 +73,7 @@ public class ToolService {
     @Transactional
     public Rename saveRename(final RenameDTO renameDTO) {
         final User user = userService.getCurrentlyLoggedInUser();
-        var dbRename = renameRepository.findOneByUserId(user.getId());
+        Optional<Rename> dbRename = renameRepository.findOneByUserId(user.getId());
 
         if (dbRename.isPresent()) {
             return updateRename(renameDTO);
