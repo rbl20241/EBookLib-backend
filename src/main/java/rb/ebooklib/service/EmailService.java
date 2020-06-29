@@ -7,7 +7,7 @@ import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import rb.ebooklib.model.Book;
-import rb.ebooklib.model.Settings;
+import rb.ebooklib.model.UserSettings;
 import rb.ebooklib.model.User;
 
 import javax.mail.MessagingException;
@@ -21,25 +21,25 @@ import static rb.ebooklib.ebooks.util.BookUtil.isNullOrEmptyString;
 @Slf4j
 public class EmailService {
 
-    private Settings settings;
+    private UserSettings userSettings;
 
     @Autowired
     private JavaMailSender javaMailSender;
 
     @Autowired
-    private SettingsService settingsService;
+    private UserSettingsService userSettingsService;
 
     @Autowired
     private UserService userService;
 
     private JavaMailSender getJavaMailSender() {
         User user = userService.getCurrentlyLoggedInUser();
-        settings = settingsService.getByUserId(user.getId());
+        userSettings = userSettingsService.getByUserId(user.getId());
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
-        mailSender.setHost(settings.getMailHost());
-        mailSender.setPort(Integer.parseInt(settings.getMailPort()));
-        mailSender.setUsername(settings.getMailUserName());
-        mailSender.setPassword(settings.getMailPassword());
+        mailSender.setHost(userSettings.getMailHost());
+        mailSender.setPort(Integer.parseInt(userSettings.getMailPort()));
+        mailSender.setUsername(userSettings.getMailUserName());
+        mailSender.setPassword(userSettings.getMailPassword());
 
         Properties props = mailSender.getJavaMailProperties();
         props.put("mail.transport.protocol", "smtp");
@@ -58,9 +58,9 @@ public class EmailService {
         try {
             helper = new MimeMessageHelper(message, true);
             helper.setSubject("Je hebt het boek '" + book.getTitle()  + "' ontvangen");
-            helper.setFrom(settings.getMailUserName());
-            helper.setTo(isNullOrEmptyString(mailTo) ? settings.getMailTo() : mailTo);
-            helper.setReplyTo(settings.getMailUserName());
+            helper.setFrom(userSettings.getMailUserName());
+            helper.setTo(isNullOrEmptyString(mailTo) ? userSettings.getMailTo() : mailTo);
+            helper.setReplyTo(userSettings.getMailUserName());
             helper.setText(getText(book.getDescription()), true);
             helper.addAttachment(book.getAuthor() + " - " + book.getTitle(), new File(book.getFilename()));
             javaMailSender.send(message);

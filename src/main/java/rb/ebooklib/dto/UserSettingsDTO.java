@@ -3,11 +3,9 @@ package rb.ebooklib.dto;
 import lombok.Data;
 
 @Data
-public class SettingsDTO {
+public class UserSettingsDTO {
     private Long id;
     private Long userId;
-    private String libraryMap;
-    private String calibreCommand;
     private String copyTo;
     private String mailTo;
     private Boolean isDateSort;

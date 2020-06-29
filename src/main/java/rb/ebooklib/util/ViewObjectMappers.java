@@ -1,10 +1,7 @@
 package rb.ebooklib.util;
 
 import org.springframework.stereotype.Component;
-import rb.ebooklib.dto.BookDTO;
-import rb.ebooklib.dto.RenameDTO;
-import rb.ebooklib.dto.SettingsDTO;
-import rb.ebooklib.dto.UserDTO;
+import rb.ebooklib.dto.*;
 import rb.ebooklib.isbnapimodels.googleapi.GoogleBookResponse;
 import rb.ebooklib.isbnapimodels.googleapi.VolumeInfo;
 import rb.ebooklib.isbnapimodels.openlibraryapi.OpenLibraryBookResponse;
@@ -32,24 +29,30 @@ public class ViewObjectMappers {
         return user;
     }
 
-    public Settings convertSettingsDtoToSettings(final SettingsDTO settingsDTO) {
-        final Settings settings = new Settings();
-        settings.setId(settingsDTO.getId());
-        settings.setLibraryMap(settingsDTO.getLibraryMap());
-        settings.setCalibreCommand(settingsDTO.getCalibreCommand());
-        settings.setCopyTo(settingsDTO.getCopyTo());
-        settings.setMailTo(settingsDTO.getMailTo());
-        settings.setIsDateSort(settingsDTO.getIsDateSort());
-        settings.setIsNameSort(settingsDTO.getIsNameSort());
-        settings.setIsEpubSelected(settingsDTO.getIsEpubSelected());
-        settings.setIsMobiSelected(settingsDTO.getIsMobiSelected());
-        settings.setIsPdfSelected(settingsDTO.getIsPdfSelected());
-        settings.setIsCbrSelected(settingsDTO.getIsCbrSelected());
-        settings.setMailHost(settingsDTO.getMailHost());
-        settings.setMailPort(settingsDTO.getMailPort());
-        settings.setMailUserName(settingsDTO.getMailUserName());
-        settings.setMailPassword(settingsDTO.getMailPassword());
-        return settings;
+    public UserSettings convertUserSettingsDtoToUserSettings(final UserSettingsDTO userSettingsDTO) {
+        final UserSettings userSettings = new UserSettings();
+        userSettings.setId(userSettingsDTO.getId());
+        userSettings.setCopyTo(userSettingsDTO.getCopyTo());
+        userSettings.setMailTo(userSettingsDTO.getMailTo());
+        userSettings.setIsDateSort(userSettingsDTO.getIsDateSort());
+        userSettings.setIsNameSort(userSettingsDTO.getIsNameSort());
+        userSettings.setIsEpubSelected(userSettingsDTO.getIsEpubSelected());
+        userSettings.setIsMobiSelected(userSettingsDTO.getIsMobiSelected());
+        userSettings.setIsPdfSelected(userSettingsDTO.getIsPdfSelected());
+        userSettings.setIsCbrSelected(userSettingsDTO.getIsCbrSelected());
+        userSettings.setMailHost(userSettingsDTO.getMailHost());
+        userSettings.setMailPort(userSettingsDTO.getMailPort());
+        userSettings.setMailUserName(userSettingsDTO.getMailUserName());
+        userSettings.setMailPassword(userSettingsDTO.getMailPassword());
+        return userSettings;
+    }
+
+    public MainSettings convertMainSettingsDtoToMainSettings(final MainSettingsDTO mainSettingsDTO) {
+        final MainSettings mainSettings = new MainSettings();
+        mainSettings.setId(mainSettingsDTO.getId());
+        mainSettings.setLibraryMap(mainSettingsDTO.getLibraryMap());
+        mainSettings.setCalibreCommand(mainSettingsDTO.getCalibreCommand());
+        return mainSettings;
     }
 
     public BookDTO convertBookToBookDto(final Book book) {

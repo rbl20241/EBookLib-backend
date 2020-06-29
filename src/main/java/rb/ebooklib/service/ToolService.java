@@ -10,10 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import rb.ebooklib.dto.RenameDTO;
 import rb.ebooklib.exception.RenameException;
-import rb.ebooklib.model.Book;
-import rb.ebooklib.model.Rename;
-import rb.ebooklib.model.Settings;
-import rb.ebooklib.model.User;
+import rb.ebooklib.model.*;
 import rb.ebooklib.persistence.RenameRepository;
 import rb.ebooklib.util.ViewObjectMappers;
 
@@ -30,10 +27,10 @@ public class ToolService {
 
     private static final Logger log = LoggerFactory.getLogger(ToolService.class);
 
-    private Settings settings;
+    private MainSettings mainSettings;
 
     @Autowired
-    private SettingsService settingsService;
+    private MainSettingsService mainSettingsService;
 
     @Autowired
     private UserService userService;
@@ -47,18 +44,17 @@ public class ToolService {
     private static final String RENAME_NOT_FOUND = "Instellingen voor id %d niet gevonden.";
 
     public void runCalibre(final Book book) {
-        User user = userService.getCurrentlyLoggedInUser();
-        settings = settingsService.getByUserId(user.getId());
+        mainSettings = mainSettingsService.getMainSettings();
 
         String pathToBook = book.getFilename();
         List<String> params = new ArrayList<>();
 
         if (SystemUtils.IS_OS_LINUX) {
-            params.add(settings.getCalibreCommand());
+            params.add(mainSettings.getCalibreCommand());
             params.add(pathToBook);
         }
         else {
-            params.add("\"" + settings.getCalibreCommand() + "\"");
+            params.add("\"" + mainSettings.getCalibreCommand() + "\"");
             params.add("\"" + pathToBook + "\"");
         }
 
@@ -111,15 +107,15 @@ public class ToolService {
         Rename rename = new Rename();
 
         User user = userService.getCurrentlyLoggedInUser();
-        settings = settingsService.getByUserId(user.getId());
+        mainSettings = mainSettingsService.getMainSettings();
 
         rename.setUserId(userId);
-        rename.setSourceMap(settings.getLibraryMap());
+        rename.setSourceMap(mainSettings.getLibraryMap());
         rename.setSourceTitleAuthorSeparator("DASH");
         rename.setSourceAuthornameSeparator("COMMA");
         rename.setSourceFormat("tav");
 
-        rename.setDestMap(settings.getLibraryMap());
+        rename.setDestMap(mainSettings.getLibraryMap());
         rename.setDestTitleAuthorSeparator("DASH");
         rename.setDestAuthornameSeparator("COMMA");
         rename.setDestFormat("avt");

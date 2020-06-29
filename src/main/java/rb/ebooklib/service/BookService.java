@@ -48,15 +48,13 @@ public class BookService {
     @Autowired
     private CategoryService categoryService;
     @Autowired
-    private UserService userService;
-    @Autowired
     private ViewObjectMappers viewObjectMappers;
     @Autowired
-    private SettingsService settingsService;
+    private MainSettingsService mainSettingsService;
     @Autowired
     private GoogleApiService googleApiService;
 
-    private static final String BOOK_NOT_FOUND = "Book with id %d not found";
+    private static final String BOOK_NOT_FOUND = "Boek met id %d niet gevonden";
 
     @Transactional
     public void updateDatasbase(final File file, final String timestamp) {
@@ -151,16 +149,14 @@ public class BookService {
 
     @Transactional
     public String getRoot() {
-        Long userId = userService.getCurrentUserId();
-        Settings settings = settingsService.getByUserId(userId);
-        return settings.getLibraryMap();
+        MainSettings mainSettings = mainSettingsService.getMainSettings();
+        return mainSettings.getLibraryMap();
     }
 
     @Transactional
     public File[] getBooksFromFolder() {
-        Long userId = userService.getCurrentUserId();
-        Settings settings = settingsService.getByUserId(userId);
-        String root = settings.getLibraryMap();
+        MainSettings mainSettings = mainSettingsService.getMainSettings();
+        String root = mainSettings.getLibraryMap();
         return new File(root).listFiles();
     }
 

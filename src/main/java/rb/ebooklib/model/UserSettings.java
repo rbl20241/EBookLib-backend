@@ -5,9 +5,9 @@ import lombok.Data;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "Settings")
+@Table(name = "usersettings")
 @Data
-public class Settings {
+public class UserSettings {
 
     @Id
     @GeneratedValue
@@ -15,9 +15,6 @@ public class Settings {
 
     @Column(name="user_id")
     private Long userId;
-
-    private String libraryMap;
-    private String calibreCommand;
 
     private String copyTo;
     private String mailTo;
