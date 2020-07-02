@@ -7,8 +7,8 @@ import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import rb.ebooklib.model.Book;
-import rb.ebooklib.model.UserSettings;
 import rb.ebooklib.model.User;
+import rb.ebooklib.model.UserSettings;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
@@ -62,7 +62,7 @@ public class EmailService {
             helper.setTo(isNullOrEmptyString(mailTo) ? userSettings.getMailTo() : mailTo);
             helper.setReplyTo(userSettings.getMailUserName());
             helper.setText(getText(book.getDescription()), true);
-            helper.addAttachment(book.getAuthor() + " - " + book.getTitle(), new File(book.getFilename()));
+            helper.addAttachment(book.getAuthor() + " - " + book.getTitle() + "." + book.getExtension(), new File(book.getFilename()));
             javaMailSender.send(message);
         } catch (MessagingException e) {
             e.printStackTrace();

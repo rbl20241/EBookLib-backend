@@ -72,7 +72,7 @@ public class UserService {
         return authUtil.getAuthenticatedUserId();
     }
 
-    User getCurrentlyLoggedInUser() {
+    public User getCurrentlyLoggedInUser() {
         final Optional<User> user = userRepository.findById(getCurrentUserId());
         return user.orElseThrow(() -> new RuntimeException("No current USER !!!!"));
     }

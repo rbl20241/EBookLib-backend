@@ -17,13 +17,13 @@ public class UserSettingsController {
     private UserSettingsService userSettingsService;
 
     @PostMapping
-    public ResponseEntity<UserSettings> createSettings(@RequestBody final UserSettingsDTO userSettingsDTO) {
+    public ResponseEntity<UserSettings> createUserSettings(@RequestBody final UserSettingsDTO userSettingsDTO) {
         final UserSettings userSettings = userSettingsService.createSettings(userSettingsDTO);
         return new ResponseEntity<>(userSettings, HttpStatus.OK);
     }
 
     @PutMapping("/update")
-    public ResponseEntity<UserSettings> updateSettings(@RequestBody final UserSettingsDTO userSettingsDTO) {
+    public ResponseEntity<UserSettings> updateUserSettings(@RequestBody final UserSettingsDTO userSettingsDTO) {
         final UserSettings userSettings = userSettingsService.updateSettings(userSettingsDTO);
         return new ResponseEntity<>(userSettings, HttpStatus.OK);
     }

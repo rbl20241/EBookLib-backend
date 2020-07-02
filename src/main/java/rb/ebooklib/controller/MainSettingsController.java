@@ -17,13 +17,13 @@ public class MainSettingsController {
     private MainSettingsService mainSettingsService;
 
     @PostMapping
-    public ResponseEntity<MainSettings> createSettings(@RequestBody final MainSettingsDTO mainSettingsDTO) {
+    public ResponseEntity<MainSettings> createMainSettings(@RequestBody final MainSettingsDTO mainSettingsDTO) {
         final MainSettings mainSettings = mainSettingsService.createSettings(mainSettingsDTO);
         return new ResponseEntity<>(mainSettings, HttpStatus.OK);
     }
 
     @PutMapping("/update")
-    public ResponseEntity<MainSettings> updateSettings(@RequestBody final MainSettingsDTO mainSettingsDTO) {
+    public ResponseEntity<MainSettings> updateMainSettings(@RequestBody final MainSettingsDTO mainSettingsDTO) {
         final MainSettings mainSettings = mainSettingsService.updateSettings(mainSettingsDTO);
         return new ResponseEntity<>(mainSettings, HttpStatus.OK);
     }
