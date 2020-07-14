@@ -73,11 +73,23 @@ public class BookUtil {
         return fileName.toLowerCase().endsWith(EXT_EPUB);
     }
 
+    public static boolean isPdf(final String fileName) {
+        return fileName.toLowerCase().endsWith(EXT_PDF);
+    }
+
+    public static boolean isMobi(final String fileName) {
+        return fileName.toLowerCase().endsWith(EXT_MOBI);
+    }
+
+    public static boolean isCbr(final String fileName) {
+        return fileName.toLowerCase().endsWith(EXT_CBR);
+    }
+
     public static List<Identifier> readIdentifiers(Metadata metadata) {
         return metadata.getIdentifiers();
     }
 
-    public static List<Author> readAuthors(Metadata metadata) {
+    public static List<Author> readAuthors(final Metadata metadata) {
         List<Author> authors = new ArrayList<>();
 
         if (isNotNullObject(metadata)) {
@@ -93,9 +105,22 @@ public class BookUtil {
                             name += metadata.getEpubAuthors().get(i).getLastname();
                         }
 
-                        Author author = new Author(name);
-                        if (!isAuthorAlreadyInList(authors, author)) {
-                            authors.add(author);
+                        if (name.contains(",")) {
+                            while (name.contains(",")) {
+                                int pos = name.indexOf(",");
+                                String newName = name.substring(0, pos).trim();
+                                name = name.substring(pos+1);
+                                Author author = new Author(newName);
+                                if (!isAuthorAlreadyInList(authors, author)) {
+                                    authors.add(author);
+                                }
+                            }
+                        }
+                        else {
+                            Author author = new Author(name);
+                            if (!isAuthorAlreadyInList(authors, author)) {
+                                authors.add(author);
+                            }
                         }
                     }
                 }
