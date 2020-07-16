@@ -5,6 +5,9 @@ import lombok.Data;
 import javax.persistence.*;
 import java.util.List;
 
+import static javax.persistence.CascadeType.ALL;
+import static javax.persistence.FetchType.LAZY;
+
 @Entity
 @Table(name = "book")
 @Data
@@ -27,16 +30,16 @@ public class Book {
 
     private String isRead;
 
-    @OneToMany(cascade=CascadeType.ALL, fetch=FetchType.LAZY)
+    @OneToMany(cascade= ALL, fetch= LAZY, orphanRemoval=true)
     private List<Identifier> identifiers;
 
-    @ManyToMany(cascade=CascadeType.ALL, fetch=FetchType.LAZY)
+    @ManyToMany
     private List<Author> authors;
 
-    @ManyToMany(cascade=CascadeType.ALL, fetch=FetchType.LAZY)
+    @ManyToMany
     private List<Category> categories;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = ALL)
     @JoinColumn(name = "genre_id")
     private Genre genre;
 

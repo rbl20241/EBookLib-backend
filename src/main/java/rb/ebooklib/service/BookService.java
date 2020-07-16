@@ -8,7 +8,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.HttpClientErrorException;
 import rb.ebooklib.dto.BookDTO;
 import rb.ebooklib.dto.PageDTO;
 import rb.ebooklib.ebooks.epub.domain.EpubBook;
@@ -26,12 +25,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Timer;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
@@ -372,11 +368,12 @@ public class BookService {
             final Book book = bookOptional.get();
             book.getAuthors().size();
             book.getCategories().size();
+            List<Category> categories = book.getCategories();
             this.bookRepository.deleteById(bookId);
             book.getAuthors().forEach(author -> this.authorService.removeAuthorWhenOrphan(author.getId()));
-            book.getCategories()
-                    .forEach(category -> this.categoryService.removeCategoryWhenOrphan(category.getId()));
+            categories.forEach(category -> this.categoryService.removeCategoryWhenOrphan(category.getId()));
             this.genreService.removeGenreWhenOrphan(book.getGenre().getId());
+
             return true;
         }
 
