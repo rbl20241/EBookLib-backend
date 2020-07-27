@@ -25,9 +25,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
@@ -56,18 +58,25 @@ public class BookService {
     private MainSettingsService mainSettingsService;
     @Autowired
     private GoogleApiService googleApiService;
+    @Autowired
+    private GoogleApiService openLibraryApiService;
 
     private static final String BOOK_NOT_FOUND = "Boek met id %d niet gevonden";
 
-    private int nrReq1;
-    private int nrReq2;
-    private LocalDateTime time0;
+    private ArrayList<LocalDateTime> time_1s;
+    private int curIndex_1s;
+    private int prevIndex_1s;
+    private int nrOfRequests_1s;
+
+    private ArrayList<LocalDateTime> time_100s;
+    private int curIndex_100s;
+    private int prevIndex_100s;
+    private int nrOfRequests_100s;
 
     @Transactional
     public void updateDatasbase(final File file, final String timestamp) {
-        nrReq1 = 0;
-        nrReq2 = 0;
-        time0 = null;
+        init_1sec_test();
+        init_100sec_test();
 
         final String filename = file.toPath().toString();
         final Optional<Book> optionalBook = this.bookRepository.findOneByFilename(filename);
@@ -76,7 +85,7 @@ public class BookService {
         if (optionalBook.isPresent()) {
             BookDTO bookDTO = viewObjectMappers.convertBookToBookDto(optionalBook.get());
             log.info("Update boek: " + bookDTO.getTitle() + " (" + bookDTO.getGenre() + ")");
-            bookDb = updateBook(bookDTO);
+            bookDb = existingBook(bookDTO);
         }
         else {
             final String root = getRoot();
@@ -105,7 +114,16 @@ public class BookService {
     }
 
     @Transactional
-    public Book updateBook(final BookDTO bookDTO) {
+    public void updateAllBooks() {
+        List<Book> bookList = bookRepository.findAll();
+        for (Book book : bookList) {
+            BookDTO bookDTO = viewObjectMappers.convertBookToBookDto(book);
+            book = updateBook(bookDTO);
+            bookRepository.save(book);
+        }
+    }
+
+    public Book existingBook(final BookDTO bookDTO) {
         final Book currentBook = this.bookRepository.findById(bookDTO.getId())
                 .orElseThrow(() -> new EntityNotFoundException(String.format(BOOK_NOT_FOUND, bookDTO.getId())));
 
@@ -116,35 +134,44 @@ public class BookService {
         if (!currentBook.getIsbn().equals(bookDTO.getIsbn())) {
             String isbn = convertIsbn10ToIsbn13(bookDTO.getIsbn());
             currentBook.setIsbn(isbn);
-            Book bookApi = readApi(currentBook);
-            boolean haveImageLink =
-                    currentBook.getImageLink().startsWith("http") &&
-                    isNotNullOrEmptyString(bookApi.getImageLink());
-            boolean readDescription =
-                    currentBook.getDescription().startsWith("Helaas geen beschrijving") &&
-                    isNotNullOrEmptyString(bookApi.getDescription());
-
-            if (!haveImageLink) {
-                currentBook.setImageLink(bookApi.getImageLink());
-            }
-            if (readDescription) {
-                currentBook.setDescription(bookApi.getDescription());
-            }
-
-            int nrOfAuthors = currentBook.getAuthors().size();
-            currentBook.setAuthors(bookApi.getAuthors());
-
-            currentBook.getCategories().size();
-            currentBook.setCategories(bookApi.getCategories());
-
-            if (currentBook.getAuthor().equalsIgnoreCase("Onbekend")) {
-                if (nrOfAuthors > 0) {
-                    currentBook.setAuthor(readFirstAuthorFromAuthors(bookApi.getAuthors()));
-                }
-            }
         }
         else {
             currentBook.setIsbn(bookDTO.getIsbn());
+        }
+
+        currentBook.setTitle(bookDTO.getTitle());
+        currentBook.setLibraryMap(bookDTO.getLibraryMap());
+        currentBook.setIdentifiers(bookDTO.getIdentifiers());
+        currentBook.setIsRead(bookDTO.getIsRead());
+        currentBook.setGenre(bookDTO.getGenre());
+        currentBook.setTimestamp(bookDTO.getTimestamp());
+
+        return bookRepository.save(currentBook);
+    }
+
+    @Transactional
+    public Book updateBook(final BookDTO bookDTO) {
+        Book currentBook = this.bookRepository.findById(bookDTO.getId())
+                .orElseThrow(() -> new EntityNotFoundException(String.format(BOOK_NOT_FOUND, bookDTO.getId())));
+
+        currentBook.setDescription(bookDTO.getDescription());
+        currentBook.setImageLink(bookDTO.getImageLink());
+        currentBook.setCategories(bookDTO.getCategories());
+        currentBook.setAuthors(bookDTO.getAuthors());
+        if (!currentBook.getIsbn().equals(bookDTO.getIsbn())) {
+            String isbn = convertIsbn10ToIsbn13(bookDTO.getIsbn());
+            currentBook.setIsbn(isbn);
+        }
+        else {
+            currentBook.setIsbn(bookDTO.getIsbn());
+        }
+
+        if (isNotNullOrEmptyString(currentBook.getIsbn())) {
+            Book googleApiBook = readGoogleApi(currentBook);
+            currentBook = readApi(currentBook, googleApiBook);
+
+            Book openLibApiBook = readOpenLibraryApi(currentBook);
+            currentBook = readApi(currentBook, openLibApiBook);
         }
 
         currentBook.setTitle(bookDTO.getTitle());
@@ -217,7 +244,7 @@ public class BookService {
             EpubBook epubBook = (new EpubReader()).readEpub(new FileInputStream(currentFile), CHARACTER_ENCODING);
             Book currentBook = convertEpubBookToBook(book, epubBook);
 
-            currentBook = readApi(currentBook);
+            // currentBook = readGoogleApi(currentBook);
             currentBook = addGenreToCategories(currentBook);
             currentBook = fillEmptyFields(currentBook);
 
@@ -253,7 +280,8 @@ public class BookService {
             currentBook.setImageLink(bookApi.getImageLink());
         }
 
-        if (isNullOrEmptyString(book.getDescription()) || book.getDescription().startsWith("Helaas geen beschrijving")) {
+        if ((isNullOrEmptyString(book.getDescription()) || book.getDescription().startsWith("Helaas geen beschrijving")) &&
+                isNotNullOrEmptyString(bookApi.getDescription())) {
             currentBook.setDescription(bookApi.getDescription());
         }
 
@@ -268,30 +296,110 @@ public class BookService {
         return currentBook;
     }
 
-    private Book readApi(Book book) {
+    private Book readGoogleApi(Book book) {
         Book currentBook = book;
-//        time0 = time0 == null ? LocalDateTime.now() : time0;
-//        LocalDateTime time1 = LocalDateTime.now();
-//
-//        if (isNotNullOrEmptyString(book.getIsbn())) {
-//            try {
-//                BookDTO bookDTO = googleApiService.searchBookByIsbn(book.getIsbn());
-//                currentBook = convertFromApiToBook(bookDTO, book);
-//            }
-//            catch (HttpClientErrorException e) {
-//                e.printStackTrace();
-//                try {
-//                    TimeUnit.MILLISECONDS.sleep(100000 - ChronoUnit.MILLIS.between(time0, time1));
-//                    time0 = LocalDateTime.now();
-//                    BookDTO bookDTO = googleApiService.searchBookByIsbn(book.getIsbn());
-//                    currentBook = convertFromApiToBook(bookDTO, book);
-//                } catch (InterruptedException interruptedException) {
-//                    interruptedException.printStackTrace();
-//                }
-//            }
-//        }
+
+        if (isNotNullOrEmptyString(book.getIsbn())) {
+            try {
+                long time_dif_1s = ChronoUnit.MILLIS.between(time_1s.get(prevIndex_1s), time_1s.get(curIndex_1s));
+                if (time_dif_1s < 1000 && nrOfRequests_1s == 10) {
+                    log.info("Teveel aanvragen binnen een seconde. Even wachten...");
+                    TimeUnit.MILLISECONDS.sleep(1000 - time_dif_1s);
+                    init_1sec_test();
+                }
+                long time_dif_100s = ChronoUnit.MILLIS.between(time_100s.get(prevIndex_100s), time_100s.get(curIndex_100s));
+                if (time_dif_100s < 100000 && nrOfRequests_100s == 100) {
+                    log.info("Teveel aanvragen binnen 100 seconden. Even wachten...");
+                    TimeUnit.MILLISECONDS.sleep(100000 - time_dif_100s);
+                    init_100sec_test();
+                }
+                BookDTO bookDTO = googleApiService.searchBookByIsbn(book.getIsbn());
+                currentBook = convertFromApiToBook(bookDTO, book);
+                update_index_1sec_test();
+                update_index_100sec_test();
+            } catch (Exception e) {
+                log.info(e.getMessage());
+            }
+        }
 
         return currentBook;
+    }
+
+    private Book readOpenLibraryApi(Book book) {
+        Book currentBook = book;
+
+        if (isNotNullOrEmptyString(book.getIsbn())) {
+            try {
+                BookDTO bookDTO = openLibraryApiService.searchBookByIsbn(book.getIsbn());
+                currentBook = convertFromApiToBook(bookDTO, book);
+            } catch (Exception e) {
+                log.info(e.getMessage());
+            }
+        }
+
+        return currentBook;
+    }
+
+    private Book readApi(final Book currentBook, final Book apiBook) {
+        boolean haveImageLink =
+                currentBook.getImageLink().startsWith("http") &&
+                        isNotNullOrEmptyString(apiBook.getImageLink());
+        boolean readDescription =
+                currentBook.getDescription().startsWith("Helaas geen beschrijving") &&
+                        isNotNullOrEmptyString(apiBook.getDescription());
+
+        if (!haveImageLink) {
+            currentBook.setImageLink(apiBook.getImageLink());
+        }
+        if (readDescription) {
+            currentBook.setDescription(apiBook.getDescription());
+        }
+
+        int nrOfAuthors = currentBook.getAuthors().size();
+        currentBook.setAuthors(apiBook.getAuthors());
+
+        currentBook.getCategories().size();
+        currentBook.setCategories(apiBook.getCategories());
+
+        if (currentBook.getAuthor().equalsIgnoreCase("Onbekend")) {
+            if (nrOfAuthors > 0) {
+                currentBook.setAuthor(readFirstAuthorFromAuthors(apiBook.getAuthors()));
+            }
+        }
+
+        return currentBook;
+    }
+
+    private void init_1sec_test() {
+        nrOfRequests_1s = 0;
+        time_1s = new ArrayList<>();
+        curIndex_1s = 0;
+        prevIndex_1s = 0;
+        time_1s.add(0, LocalDateTime.now());
+    }
+
+    private void update_index_1sec_test() {
+        nrOfRequests_1s++;
+        curIndex_1s++;
+        if (curIndex_1s >= 10) {
+            prevIndex_1s++;
+        }
+    }
+
+    private void init_100sec_test() {
+        nrOfRequests_100s = 0;
+        time_100s = new ArrayList<>();
+        curIndex_100s = 0;
+        prevIndex_100s = 0;
+        time_100s.add(0, LocalDateTime.now());
+    }
+
+    private void update_index_100sec_test() {
+        nrOfRequests_100s++;
+        curIndex_100s++;
+        if (curIndex_100s >= 100) {
+            prevIndex_100s++;
+        }
     }
 
     private Book addAuthors(Book book, BookDTO bookDTO) {
@@ -395,7 +503,6 @@ public class BookService {
         book.setImageLink(System.getProperty("user.dir") + File.separator + "images" + File.separator + "book.jpg");
         book.setIsbn("");
         book.setPublisher("");
-
 
         return book;
     }

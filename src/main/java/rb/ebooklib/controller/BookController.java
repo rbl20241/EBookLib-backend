@@ -37,12 +37,17 @@ public class BookController {
     private EmailService emailService;
 
     @PostMapping
-    public void createBooks() {
-        String timestamp = createTimestamp();
-        String root = bookService.getRoot();
-        createBookTree(root, timestamp);
+    public void createBooks(@RequestParam(value = "useApi") final String useApi) {
+        if (useApi.equalsIgnoreCase("true")) {
+            bookService.updateAllBooks();
+        }
+        else {
+            String timestamp = createTimestamp();
+            String root = bookService.getRoot();
+            createBookTree(root, timestamp);
 
-        bookService.deleteNotExistingsBooksFromDatabase(timestamp);
+            bookService.deleteNotExistingsBooksFromDatabase(timestamp);
+        }
     }
 
     private void createBookTree(String root, String timestamp) {

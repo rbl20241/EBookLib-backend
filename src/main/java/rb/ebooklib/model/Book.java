@@ -30,13 +30,13 @@ public class Book {
 
     private String isRead;
 
-    @OneToMany(cascade= ALL, fetch= LAZY, orphanRemoval=true)
+    @OneToMany(cascade= ALL, fetch= LAZY)
     private List<Identifier> identifiers;
 
-    @ManyToMany
+    @ManyToMany(cascade = ALL)
     private List<Author> authors;
 
-    @ManyToMany
+    @ManyToMany(cascade = ALL)
     private List<Category> categories;
 
     @ManyToOne(cascade = ALL)
