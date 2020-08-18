@@ -19,6 +19,7 @@ public class BookDTO {
     private String libraryMap;
     private String publisher;
     private String extension;
+    private String language;
     private String description;
     private String isRead;
     private List<Identifier> identifiers;

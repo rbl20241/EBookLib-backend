@@ -266,6 +266,16 @@ public class BookUtil {
         return imageLink;
     }
 
+    public static String readLanguage(final Metadata metadata) {
+        if ((isNullOrEmptyString(metadata.getLanguage())) ||
+                metadata.getLanguage().equalsIgnoreCase("UND")) {
+            return "";
+        }
+        else {
+            return metadata.getLanguage();
+        }
+    }
+
     public static String convertIsbn10ToIsbn13(final String currentIsbn) {
         String isbn13 = "";
 

@@ -105,9 +105,10 @@ public class BookController {
                                                              @RequestParam(value = "genre") final String genre,
                                                              @RequestParam(value = "category") final String category,
                                                              @RequestParam(value = "extension") final String extension,
+                                                             @RequestParam(value = "language") final String language,
                                                              @RequestParam(value = "size", required = false, defaultValue = "10") final Integer size,
                                                              @RequestParam(value = "pageNo", required = false, defaultValue = "1") final Integer pageNo) {
-        final PageDTO<Book> pageDTO = bookService.getSearchBooks(whatToSearch, query, genre, category, extension, size, pageNo);
+        final PageDTO<Book> pageDTO = bookService.getSearchBooks(whatToSearch, query, genre, category, extension, language, size, pageNo);
         return new ResponseEntity<>(pageDTO, HttpStatus.OK);
     }
 

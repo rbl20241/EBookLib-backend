@@ -24,6 +24,7 @@ public class Book {
     private String libraryMap;
     private String publisher;
     private String extension;
+    private String language;
 
     @Column(length=10000)
     private String description;
@@ -33,10 +34,10 @@ public class Book {
     @OneToMany(cascade= ALL, fetch= LAZY)
     private List<Identifier> identifiers;
 
-    @ManyToMany(cascade = ALL)
+    @ManyToMany(cascade = {CascadeType.REFRESH, CascadeType.MERGE})
     private List<Author> authors;
 
-    @ManyToMany(cascade = ALL)
+    @ManyToMany(cascade = {CascadeType.REFRESH, CascadeType.MERGE})
     private List<Category> categories;
 
     @ManyToOne(cascade = ALL)

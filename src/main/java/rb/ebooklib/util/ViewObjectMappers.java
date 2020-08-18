@@ -70,6 +70,7 @@ public class ViewObjectMappers {
         bookDTO.setDescription(book.getDescription());
         bookDTO.setIdentifiers(book.getIdentifiers());
         bookDTO.setIsRead(book.getIsRead());
+        bookDTO.setLanguage(book.getLanguage());
         bookDTO.setTimestamp(book.getTimestamp());
 
         if (book.getAuthors() == null) {
@@ -109,6 +110,7 @@ public class ViewObjectMappers {
         book.setDescription(bookDTO.getDescription());
         book.setIdentifiers(bookDTO.getIdentifiers());
         book.setIsRead(bookDTO.getIsRead());
+        book.setLanguage(bookDTO.getLanguage());
         book.setTimestamp(bookDTO.getTimestamp());
 
         if (bookDTO.getAuthors() == null) {
@@ -162,6 +164,7 @@ public class ViewObjectMappers {
                     .ifPresent(imageLinks -> bookDTO.setImageLink(imageLinks.getThumbnail()));
 
             bookDTO.setDescription(volumeInfo.getDescription());
+            bookDTO.setLanguage(volumeInfo.getLanguage());
         }
 
         return bookDTO;

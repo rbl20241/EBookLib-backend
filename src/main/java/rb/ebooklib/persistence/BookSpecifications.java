@@ -52,7 +52,7 @@ public final class BookSpecifications {
         };
     }
 
-    public static Specification<Book> searchBooks(final String whatToSearch, final String queryString, final String genre, final String category, final String extension) {
+    public static Specification<Book> searchBooks(final String whatToSearch, final String queryString, final String genre, final String category, final String extension, final String language) {
         final String likeQueryString = String.format(LIKE_QUERY_FORMAT, queryString.toLowerCase());
         final boolean searchInTitleAndAuthor = whatToSearch.equals("searchTitleOrAuthor");
         final boolean searchInDescription = whatToSearch.equals("searchDescription");
@@ -62,6 +62,7 @@ public final class BookSpecifications {
             Predicate genrePredicate = null;
             Predicate categoryPredicate = null;
             Predicate extensionPredicate = null;
+            Predicate languagePredicate = null;
             Predicate queryPredicate = null;
 
             if (searchInTitleAndAuthor && isSelected(queryString)) {
@@ -89,53 +90,105 @@ public final class BookSpecifications {
                 extensionPredicate = cb.like(cb.lower(root.get(Book_.extension)), extension);
             }
 
+            if (isSelected(language)) {
+                languagePredicate = cb.like(cb.lower(root.get(Book_.language)), language);
+            }
+
             query.distinct(true);
 
-            if (isSelected(queryString) && isSelected(genre) && isSelected(category) && isSelected(extension)) {
+            if (isSelected(queryString) && isSelected(genre) && isSelected(category) && isSelected(extension) && isSelected(language)) {
+                return cb.and(queryPredicate, genrePredicate, categoryPredicate, extensionPredicate, languagePredicate);
+            } // 1
+            else if (isSelected(queryString) && isSelected(genre) && isSelected(category) && isSelected(extension) && !isSelected(language)) {
                 return cb.and(queryPredicate, genrePredicate, categoryPredicate, extensionPredicate);
-            }
-            else if (isSelected(queryString) && isSelected(genre) && isSelected(category) && !isSelected(extension)) {
+            } // 2
+            else if (isSelected(queryString) && isSelected(genre) && isSelected(category) && !isSelected(extension) && !isSelected(language)) {
                 return cb.and(queryPredicate, genrePredicate, categoryPredicate);
-            }
-            else if (isSelected(queryString) && isSelected(genre) && !isSelected(category) && isSelected(extension)) {
-                return cb.and(queryPredicate, genrePredicate, extensionPredicate);
-            }
-            else if (isSelected(queryString) && isSelected(genre) && !isSelected(category) && !isSelected(extension)) {
+            } // 3
+            else if (isSelected(queryString) && isSelected(genre) && !isSelected(category) && !isSelected(extension) && !isSelected(language)) {
                 return cb.and(queryPredicate, genrePredicate);
-            }
-            else if (isSelected(queryString) && !isSelected(genre) && isSelected(category) && isSelected(extension)) {
-                return cb.and(queryPredicate, categoryPredicate, extensionPredicate);
-            }
-            else if (isSelected(queryString) && !isSelected(genre) && isSelected(category) && !isSelected(extension)) {
+            } // 4
+            else if (isSelected(queryString) && !isSelected(genre) && isSelected(category) && !isSelected(extension) && !isSelected(language)) {
                 return cb.and(queryPredicate, categoryPredicate);
-            }
-            else if (isSelected(queryString) && !isSelected(genre) && !isSelected(category) && isSelected(extension)) {
-                return cb.and(queryPredicate, extensionPredicate);
-            }
-            else if (isSelected(queryString) && !isSelected(genre) && !isSelected(category) && !isSelected(extension)) {
-                return queryPredicate;
-            }
-            else if (!isSelected(queryString) && isSelected(genre) && isSelected(category) && isSelected(extension)) {
-                return cb.and(genrePredicate, categoryPredicate, extensionPredicate);
-            }
-            else if (!isSelected(queryString) && isSelected(genre) && isSelected(category) && !isSelected(extension)) {
+            } // 5
+            else if (!isSelected(queryString) && isSelected(genre) && isSelected(category) && !isSelected(extension) && !isSelected(language)) {
                 return cb.and(genrePredicate, categoryPredicate);
-            }
-            else if (!isSelected(queryString) && isSelected(genre) && !isSelected(category) && isSelected(extension)) {
-                return cb.and(genrePredicate, extensionPredicate);
-            }
-            else if (!isSelected(queryString) && isSelected(genre) && !isSelected(category) && !isSelected(extension)) {
+            } // 6
+            else if (isSelected(queryString) && !isSelected(genre) && !isSelected(category) && !isSelected(extension) && !isSelected(language)) {
+                return queryPredicate;
+            } // 7
+            else if (!isSelected(queryString) && isSelected(genre) && !isSelected(category) && !isSelected(extension) && !isSelected(language)) {
                 return genrePredicate;
-            }
-            else if (!isSelected(queryString) && !isSelected(genre) && isSelected(category) && isSelected(extension)) {
-                return cb.and(categoryPredicate, extensionPredicate);
-            }
-            else if (!isSelected(queryString) && !isSelected(genre) && isSelected(category) && !isSelected(extension)) {
+            } // 8
+            else if (!isSelected(queryString) && !isSelected(genre) && isSelected(category) && !isSelected(extension) && !isSelected(language)) {
                 return categoryPredicate;
-            }
-            else if (!isSelected(queryString) && !isSelected(genre) && !isSelected(category) && isSelected(extension)) {
+            } // 9
+            else if (isSelected(queryString) && isSelected(genre) && !isSelected(category) && isSelected(extension) && !isSelected(language)) {
+                return cb.and(queryPredicate, genrePredicate, extensionPredicate);
+            } // 10
+            else if (isSelected(queryString) && !isSelected(genre) && !isSelected(category) && isSelected(extension) && !isSelected(language)) {
+                return cb.and(queryPredicate, extensionPredicate);
+            } // 11
+            else if (!isSelected(queryString) && isSelected(genre) && !isSelected(category) && isSelected(extension) && !isSelected(language)) {
+                return cb.and(genrePredicate, extensionPredicate);
+            } // 12
+            else if (!isSelected(queryString) && !isSelected(genre) && !isSelected(category) && isSelected(extension) && !isSelected(language)) {
                 return extensionPredicate;
-            }
+            } // 13
+            else if (isSelected(queryString) && !isSelected(genre) && isSelected(category) && isSelected(extension) && !isSelected(language)) {
+                return cb.and(queryPredicate, categoryPredicate, extensionPredicate);
+            } // 14
+            else if (!isSelected(queryString) && isSelected(genre) && isSelected(category) && isSelected(extension) && !isSelected(language)) {
+                return cb.and(genrePredicate, categoryPredicate, extensionPredicate);
+            } // 15
+            else if (!isSelected(queryString) && !isSelected(genre) && isSelected(category) && isSelected(extension) && !isSelected(language)) {
+                return cb.and(categoryPredicate, extensionPredicate);
+            } // 16  
+            else if (isSelected(queryString) && isSelected(genre) && isSelected(category) && !isSelected(extension) && isSelected(language)) {
+                return cb.and(queryPredicate, genrePredicate, categoryPredicate, languagePredicate);
+            } // 17
+            else if (isSelected(queryString) && isSelected(genre) && !isSelected(category) && !isSelected(extension) && isSelected(language)) {
+                return cb.and(queryPredicate, genrePredicate, languagePredicate);
+            } // 18
+            else if (isSelected(queryString) && !isSelected(genre) && isSelected(category) && !isSelected(extension) && isSelected(language)) {
+                return cb.and(queryPredicate, categoryPredicate, languagePredicate);
+            } // 19
+            else if (!isSelected(queryString) && isSelected(genre) && isSelected(category) && !isSelected(extension) && isSelected(language)) {
+                return cb.and(genrePredicate, categoryPredicate, languagePredicate);
+            } // 20
+            else if (isSelected(queryString) && !isSelected(genre) && !isSelected(category) && !isSelected(extension) && isSelected(language)) {
+                return cb.and(queryPredicate, languagePredicate);
+            } // 21
+            else if (!isSelected(queryString) && isSelected(genre) && !isSelected(category) && !isSelected(extension) && isSelected(language)) {
+                return cb.and(genrePredicate, languagePredicate);
+            } // 22
+            else if (!isSelected(queryString) && !isSelected(genre) && isSelected(category) && !isSelected(extension) && isSelected(language)) {
+                return cb.and(categoryPredicate, languagePredicate);
+            } // 23
+            else if (isSelected(queryString) && isSelected(genre) && !isSelected(category) && isSelected(extension) && isSelected(language)) {
+                return cb.and(queryPredicate, genrePredicate, extensionPredicate, languagePredicate);
+            } // 24
+            else if (isSelected(queryString) && !isSelected(genre) && !isSelected(category) && isSelected(extension) && isSelected(language)) {
+                return cb.and(queryPredicate, extensionPredicate, languagePredicate);
+            } // 25
+            else if (!isSelected(queryString) && isSelected(genre) && !isSelected(category) && isSelected(extension) && isSelected(language)) {
+                return cb.and(genrePredicate, extensionPredicate, languagePredicate);
+            } // 26
+            else if (!isSelected(queryString) && !isSelected(genre) && !isSelected(category) && isSelected(extension) && isSelected(language)) {
+                return cb.and(extensionPredicate, languagePredicate);
+            } // 27
+            else if (isSelected(queryString) && !isSelected(genre) && isSelected(category) && isSelected(extension) && isSelected(language)) {
+                return cb.and(queryPredicate, categoryPredicate, extensionPredicate, languagePredicate);
+            } // 28
+            else if (!isSelected(queryString) && isSelected(genre) && isSelected(category) && isSelected(extension) && isSelected(language)) {
+                return cb.and(genrePredicate, categoryPredicate, extensionPredicate, languagePredicate);
+            } // 29
+            else if (!isSelected(queryString) && !isSelected(genre) && isSelected(category) && isSelected(extension) && isSelected(language)) {
+                return cb.and(categoryPredicate, extensionPredicate, languagePredicate);
+            } // 30
+            else if (!isSelected(queryString) && !isSelected(genre) && !isSelected(category) && !isSelected(extension) && isSelected(language)) {
+                return languagePredicate;
+            } // 31
 
             return null;
         };

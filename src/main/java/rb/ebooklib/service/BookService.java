@@ -43,7 +43,7 @@ import static rb.ebooklib.util.StringUtil.startWithCapital;
 public class BookService {
 
     private static final Logger log = LoggerFactory.getLogger(BookService.class);
-    
+
     @Autowired
     private BookRepository bookRepository;
     @Autowired
@@ -79,32 +79,31 @@ public class BookService {
         init_100sec_test();
 
         final String filename = file.toPath().toString();
-        final Optional<Book> optionalBook = this.bookRepository.findOneByFilename(filename);
+        final Optional<Book> optionalBook = bookRepository.findOneByFilename(filename);
 
         Book bookDb;
         if (optionalBook.isPresent()) {
             BookDTO bookDTO = viewObjectMappers.convertBookToBookDto(optionalBook.get());
             log.info("Update boek: " + bookDTO.getTitle() + " (" + bookDTO.getGenre() + ")");
             bookDb = existingBook(bookDTO);
-        }
-        else {
+        } else {
             final String root = getRoot();
-            final String librayMap = filename.substring(root.length()+1, filename.lastIndexOf(File.separator));
+            final String librayMap = filename.substring(root.length() + 1, filename.lastIndexOf(File.separator));
             Book book = getNewBook(librayMap, filename);
             bookDb = createBook(book);
         }
 
         bookDb.setTimestamp(timestamp);
-        this.bookRepository.save(bookDb);
+        bookRepository.save(bookDb);
     }
 
     @Transactional
     private Book createBook(final Book book) {
 
         log.info("Current book: " + book.getTitle() + "(" + book.getGenre().getName() + ")");
-        final List<Author> authorList = this.authorService.mergeNewAuthors(book.getAuthors());
-        final List<Category> categoryList = this.categoryService.mergeNewCategories(book.getCategories());
-        final Genre genre = this.genreService.mergeNewGenre(book.getGenre());
+        final List<Author> authorList = authorService.mergeNewAuthors(book.getAuthors());
+        final List<Category> categoryList = categoryService.mergeNewCategories(book.getCategories());
+        final Genre genre = genreService.mergeNewGenre(book.getGenre());
 
         book.setAuthors(authorList);
         book.setCategories(categoryList);
@@ -124,7 +123,7 @@ public class BookService {
     }
 
     public Book existingBook(final BookDTO bookDTO) {
-        final Book currentBook = this.bookRepository.findById(bookDTO.getId())
+        final Book currentBook = bookRepository.findById(bookDTO.getId())
                 .orElseThrow(() -> new EntityNotFoundException(String.format(BOOK_NOT_FOUND, bookDTO.getId())));
 
         currentBook.setDescription(bookDTO.getDescription());
@@ -134,8 +133,7 @@ public class BookService {
         if (!currentBook.getIsbn().equals(bookDTO.getIsbn())) {
             String isbn = convertIsbn10ToIsbn13(bookDTO.getIsbn());
             currentBook.setIsbn(isbn);
-        }
-        else {
+        } else {
             currentBook.setIsbn(bookDTO.getIsbn());
         }
 
@@ -144,6 +142,7 @@ public class BookService {
         currentBook.setIdentifiers(bookDTO.getIdentifiers());
         currentBook.setIsRead(bookDTO.getIsRead());
         currentBook.setGenre(bookDTO.getGenre());
+        currentBook.setLanguage(bookDTO.getLanguage());
         currentBook.setTimestamp(bookDTO.getTimestamp());
 
         return bookRepository.save(currentBook);
@@ -151,7 +150,7 @@ public class BookService {
 
     @Transactional
     public Book updateBook(final BookDTO bookDTO) {
-        Book currentBook = this.bookRepository.findById(bookDTO.getId())
+        Book currentBook = bookRepository.findById(bookDTO.getId())
                 .orElseThrow(() -> new EntityNotFoundException(String.format(BOOK_NOT_FOUND, bookDTO.getId())));
 
         currentBook.setDescription(bookDTO.getDescription());
@@ -161,8 +160,7 @@ public class BookService {
         if (!currentBook.getIsbn().equals(bookDTO.getIsbn())) {
             String isbn = convertIsbn10ToIsbn13(bookDTO.getIsbn());
             currentBook.setIsbn(isbn);
-        }
-        else {
+        } else {
             currentBook.setIsbn(bookDTO.getIsbn());
         }
 
@@ -179,13 +177,14 @@ public class BookService {
         currentBook.setIdentifiers(bookDTO.getIdentifiers());
         currentBook.setIsRead(bookDTO.getIsRead());
         currentBook.setGenre(bookDTO.getGenre());
+        currentBook.setLanguage(bookDTO.getLanguage());
         currentBook.setTimestamp(bookDTO.getTimestamp());
 
         return bookRepository.save(currentBook);
     }
 
     @Transactional
-    public void deleteNotExistingsBooksFromDatabase(String timestamp) {
+    public void deleteNotExistingsBooksFromDatabase(final String timestamp) {
         bookRepository.findAll()
                 .stream()
                 .filter(book -> !book.getTimestamp().equalsIgnoreCase(timestamp))
@@ -207,18 +206,18 @@ public class BookService {
     }
 
     @Transactional
-    public Book getNewBook(String libraryMap, String path) {
+    public Book getNewBook(final String libraryMap, final String path) {
         Book book = new Book();
         book.setFilename(path);
-        book.setAuthor(getAuthor(path));;
+        book.setAuthor(getAuthor(path));
+        ;
         book.setLibraryMap(libraryMap);
         book.setGenre(new Genre(startWithCapital(libraryMap)));
         book.setExtension(getExtension(path));
         book.setIsRead("N");
         if (isEpub(path)) {
             book = readEpubBook(book, path);
-        }
-        else if (isPdf(path) || isMobi(path) || isCbr(path)) {
+        } else if (isPdf(path) || isMobi(path) || isCbr(path)) {
             book = readOtherBook(book, path);
         }
 
@@ -230,8 +229,7 @@ public class BookService {
             List<Author> authors = bookRepository.findAuthorsByFilename(path);
             if (isNotNullOrEmptyList(authors)) {
                 book.setAuthor(authors.get(0).getName());
-            }
-            else {
+            } else {
                 book.setAuthor("Onbekend");
             }
         }
@@ -239,7 +237,7 @@ public class BookService {
         return book;
     }
 
-    private Book readEpubBook(Book book, String currentFile) {
+    private Book readEpubBook(final Book book, final String currentFile) {
         try {
             EpubBook epubBook = (new EpubReader()).readEpub(new FileInputStream(currentFile), CHARACTER_ENCODING);
             Book currentBook = convertEpubBookToBook(book, epubBook);
@@ -249,8 +247,7 @@ public class BookService {
             currentBook = fillEmptyFields(currentBook);
 
             return currentBook;
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             log.error(currentFile);
             log.error(e.getMessage());
         }
@@ -258,7 +255,6 @@ public class BookService {
     }
 
     private Book convertEpubBookToBook(final Book book, final EpubBook epubBook) {
-
         if (book != null) {
             book.setAuthors(readAuthors(epubBook.getMetadata()));
             book.setDescription(createDescription(epubBook.getMetadata()));
@@ -268,12 +264,13 @@ public class BookService {
             book.setIsbn(readIsbn(epubBook.getMetadata()));
             book.setCategories(readCategories(epubBook.getMetadata()));
             book.setIdentifiers(readIdentifiers(epubBook.getMetadata()));
+            book.setLanguage(readLanguage(epubBook.getMetadata()));
         }
 
         return book;
     }
 
-    private Book convertFromApiToBook(BookDTO bookApi, Book book) {
+    private Book convertFromApiToBook(final BookDTO bookApi, final Book book) {
         Book currentBook = book;
 
         if (isNotNullOrEmptyString(bookApi.getImageLink())) {
@@ -296,7 +293,7 @@ public class BookService {
         return currentBook;
     }
 
-    private Book readGoogleApi(Book book) {
+    private Book readGoogleApi(final Book book) {
         Book currentBook = book;
 
         if (isNotNullOrEmptyString(book.getIsbn())) {
@@ -325,7 +322,7 @@ public class BookService {
         return currentBook;
     }
 
-    private Book readOpenLibraryApi(Book book) {
+    private Book readOpenLibraryApi(final Book book) {
         Book currentBook = book;
 
         if (isNotNullOrEmptyString(book.getIsbn())) {
@@ -402,7 +399,7 @@ public class BookService {
         }
     }
 
-    private Book addAuthors(Book book, BookDTO bookDTO) {
+    private Book addAuthors(final Book book, final BookDTO bookDTO) {
         Book currentBook = book;
 
         List<Author> authorsDTO = bookDTO.getAuthors();
@@ -415,24 +412,22 @@ public class BookService {
         return currentBook;
     }
 
-    private Book addCategories(Book book, BookDTO bookDTO) {
-        Book currentBook = book;
-
+    private Book addCategories(final Book book, final BookDTO bookDTO) {
         if (isNotNullOrEmptyList(bookDTO.getCategories())) {
             List<Category> categoriesDTO = bookDTO.getCategories();
             for (Category category : categoriesDTO) {
                 if (!isCategoryFound(book.getCategories(), category)) {
-                    currentBook.getCategories().add(category);
+                    book.getCategories().add(category);
                 }
             }
         }
 
-        return currentBook;
+        return book;
     }
 
-    private Boolean isCategoryFound(List<Category> categories, Category newCategory) {
+    private Boolean isCategoryFound(final List<Category> categories, final Category newCategory) {
         String currentCategory = newCategory.getName();
-        for (Category category: categories) {
+        for (Category category : categories) {
             if (category.getName().equalsIgnoreCase(currentCategory)) {
                 return true;
             }
@@ -441,46 +436,42 @@ public class BookService {
         return false;
     }
 
-    private Book addGenreToCategories(Book book) {
-        Book currentBook = book;
-
+    private Book addGenreToCategories(final Book book) {
         List<Category> categories = book.getCategories();
         Category genre = new Category(book.getGenre().getName());
         if (!isCategoryFound(categories, genre)) {
             categories.add(genre);
         }
 
-        currentBook.setCategories(categories);
+        book.setCategories(categories);
 
-        return currentBook;
+        return book;
     }
 
-    private Book fillEmptyFields(Book book) {
-        Book currentBook = book;
-
-        if (isNullOrEmptyString(currentBook.getDescription())) {
-            currentBook.setDescription("Helaas geen beschrijving gevonden.");
+    private Book fillEmptyFields(final Book book) {
+        if (isNullOrEmptyString(book.getDescription())) {
+            book.setDescription("Helaas geen beschrijving gevonden.");
         }
 
-        if (isNullOrEmptyString(currentBook.getImageLink())) {
-            currentBook.setImageLink(System.getProperty("user.dir") + File.separator + "images" + File.separator + "book.jpg");
+        if (isNullOrEmptyString(book.getImageLink())) {
+            book.setImageLink(System.getProperty("user.dir") + File.separator + "images" + File.separator + "book.jpg");
         }
 
-        return currentBook;
+        return book;
     }
 
     @Transactional
     public Boolean removeBookWhenOrphan(final Long bookId) {
-        final Optional<Book> bookOptional = this.bookRepository.findById(bookId);
+        final Optional<Book> bookOptional = bookRepository.findById(bookId);
         if (bookOptional.isPresent()) {
             final Book book = bookOptional.get();
             book.getAuthors().size();
             book.getCategories().size();
             List<Category> categories = book.getCategories();
-            this.bookRepository.deleteById(bookId);
-            book.getAuthors().forEach(author -> this.authorService.removeAuthorWhenOrphan(author.getId()));
-            categories.forEach(category -> this.categoryService.removeCategoryWhenOrphan(category.getId()));
-            this.genreService.removeGenreWhenOrphan(book.getGenre().getId());
+            bookRepository.deleteById(bookId);
+            book.getAuthors().forEach(author -> authorService.removeAuthorWhenOrphan(author.getId()));
+            categories.forEach(category -> categoryService.removeCategoryWhenOrphan(category.getId()));
+            genreService.removeGenreWhenOrphan(book.getGenre().getId());
 
             return true;
         }
@@ -508,12 +499,12 @@ public class BookService {
     }
 
     public Book getById(final Long bookId) {
-        return this.bookRepository.findById(bookId)
+        return bookRepository.findById(bookId)
                 .orElseThrow(() -> new EntityNotFoundException(String.format(BOOK_NOT_FOUND, bookId)));
     }
 
     public PageDTO<Book> getAllBooks(final Integer size, final Integer pageNo) {
-        final Page<Book> page = this.bookRepository.findAll(getPageRequestWithTitleSort(size, pageNo));
+        final Page<Book> page = bookRepository.findAll(getPageRequestWithTitleSort(size, pageNo));
         return new PageDTO<>(page);
     }
 
@@ -537,29 +528,27 @@ public class BookService {
         return new PageDTO<>(page);
     }
 
-    public PageDTO<Book> getSearchBooks(final String whatToSearch, final String query, final String genre, final String category, final String extension, final Integer size, final Integer pageNo) {
+    public PageDTO<Book> getSearchBooks(final String whatToSearch, final String query, final String genre, final String category, final String extension, final String language, final Integer size, final Integer pageNo) {
         Page<Book> page = bookRepository
-                .findAll(searchBooks(whatToSearch, query, genre, category, extension), getPageRequestWithTitleSort(size, pageNo));
+                .findAll(searchBooks(whatToSearch, query, genre, category, extension, language), getPageRequestWithTitleSort(size, pageNo));
         return new PageDTO<>(page);
     }
 
-    private PageRequest getPageRequestWithTitleSort(int size, int pageNo) {
+    private PageRequest getPageRequestWithTitleSort(final int size, final int pageNo) {
         return PageRequest.of(pageNo - 1, size, Sort.by(Book_.libraryMap.getName()).and(Sort.by(Book_.author.getName())).and(Sort.by(Book_.title.getName())));
     }
 
-    private String readFirstAuthorFromAuthors(List<Author> authors) {
+    private String readFirstAuthorFromAuthors(final List<Author> authors) {
         String author = "";
         String authorName = authors.get(0).getName();
         if (authorName.contains(",")) {
             author = authorName;
-        }
-        else if (nrOfChars(authorName, ' ') == 1) {
+        } else if (nrOfChars(authorName, ' ') == 1) {
             int p = authorName.indexOf(' ');
             String firstName = authorName.substring(0, p);
-            String lastName = authorName.substring(p+1);
+            String lastName = authorName.substring(p + 1);
             author = lastName + ", " + firstName;
-        }
-        else {
+        } else {
             author = authorName;
         }
 
@@ -573,7 +562,7 @@ public class BookService {
         try {
             Path source = Paths.get(copyFrom);
             String pathTo = newRoot + File.separator + libraryMap;
-            Path target = Paths.get( pathTo+ File.separator + source.getFileName());
+            Path target = Paths.get(pathTo + File.separator + source.getFileName());
             if (Files.notExists(Paths.get(pathTo))) {
                 Files.createDirectories(Paths.get(pathTo));
             }
@@ -583,7 +572,5 @@ public class BookService {
             log.error(e.getMessage());
         }
     }
-
-
-
 }
+
