@@ -22,6 +22,7 @@ import rb.ebooklib.security.CustomUserDetailsService;
 
 import java.util.Objects;
 
+
 @Configuration
 class OAuth2ServerConfiguration {
     private static final String RESOURCE_ID = "restservice";
