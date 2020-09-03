@@ -1,0 +1,36 @@
+version: '3'
+
+services:
+  ebooklib-mysql:
+    image: mysql:latest
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=A!b2c3d*
+      - MYSQL_DATABASE=ebooklib
+    ports:
+      - 3306:3306
+
+  ebooklib-backend:
+    image: ebooklib-backend
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    depends_on:
+      - ebooklib-mysql
+    ports:
+      - 8085:8085
+    environment:
+      - DATABASE_HOST=ebooklib-mysql
+      - DATABASE_USER=root
+      - DATABASE_PASSWORD=A!b2c3d*
+      - DATABASE_NAME=ebooklib
+      - DATABASE_PORT=3306
+
+  ebooklib-frontend:
+    image: ebooklib-frontend
+    build:
+      context: ../EBookLib-frontend
+      dockerfile: ./Dockerfile.frontend
+    ports:
+      - 4200:4200
