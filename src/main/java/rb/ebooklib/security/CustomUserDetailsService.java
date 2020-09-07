@@ -18,6 +18,6 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(final String username) throws UsernameNotFoundException {
         final User user = userRepository.findByUsernameIgnoreCase(username)
                 .orElseThrow(() -> new IllegalArgumentException("Gebruiker bestaat niet"));
-        return new UserPrincipal(user);
+        return UserPrincipal.create(user);
     }
 }

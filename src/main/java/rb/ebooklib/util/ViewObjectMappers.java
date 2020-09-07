@@ -6,6 +6,7 @@ import rb.ebooklib.isbnapimodels.googleapi.GoogleBookResponse;
 import rb.ebooklib.isbnapimodels.googleapi.VolumeInfo;
 import rb.ebooklib.isbnapimodels.openlibraryapi.OpenLibraryBookResponse;
 import rb.ebooklib.model.*;
+import rb.ebooklib.payload.RegisterRequest;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -210,6 +211,16 @@ public class ViewObjectMappers {
         rename.setDestFormat(renameDTO.getDestFormat());
         
         return rename;
+    }
+
+    public User convertRegisterRequestToUser(final RegisterRequest registerRequest) {
+        final User user = new User();
+
+        user.setPassword(registerRequest.getPassword());
+        user.setUsername(registerRequest.getUsername());
+        user.setEmail(registerRequest.getEmail());
+
+        return user;
     }
 
 }

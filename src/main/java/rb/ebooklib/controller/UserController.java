@@ -23,11 +23,11 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    @PostMapping
-    public ResponseEntity<User> registerUser(@RequestBody final UserDTO userDTO) {
-        User user = userService.registerUser(userDTO);
-        return new ResponseEntity<>(user, HttpStatus.OK);
-    }
+//    @PostMapping
+//    public ResponseEntity<User> registerUser(@RequestBody final UserDTO userDTO) {
+//        User user = userService.registerUser(userDTO);
+//        return new ResponseEntity<>(user, HttpStatus.OK);
+//    }
 
     @GetMapping("/currentuserid")
     public ResponseEntity<Long> getUserIdCurrentUser() {

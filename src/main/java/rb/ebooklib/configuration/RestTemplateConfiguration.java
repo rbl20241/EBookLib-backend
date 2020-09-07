@@ -15,19 +15,16 @@ import java.util.Collections;
 @Configuration
 public class RestTemplateConfiguration {
 
-    @Autowired
-    CloseableHttpClient httpClient;
-
     @Bean
-    public RestTemplate restTemplate(RestTemplateBuilder builder) {
+    public RestTemplate restTemplate(RestTemplateBuilder builder, CloseableHttpClient httpClient) {
         return builder
-                .requestFactory(() -> new BufferingClientHttpRequestFactory(clientHttpRequestFactory()))
+                .requestFactory(() -> new BufferingClientHttpRequestFactory(clientHttpRequestFactory(httpClient)))
                 .interceptors(Collections.singletonList(new RequestResponseLoggingInterceptor()))
                 .build();
     }
 
     @Bean
-    public HttpComponentsClientHttpRequestFactory clientHttpRequestFactory() {
+    public HttpComponentsClientHttpRequestFactory clientHttpRequestFactory(CloseableHttpClient httpClient) {
         return new HttpComponentsClientHttpRequestFactory(httpClient);
     }
 }

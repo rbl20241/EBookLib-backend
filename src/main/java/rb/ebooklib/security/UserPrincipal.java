@@ -7,32 +7,43 @@ import rb.ebooklib.model.User;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
+
 
 public class UserPrincipal implements UserDetails {
 
     private final User user;
+    private final Collection<? extends GrantedAuthority> authorities;
 
-    public UserPrincipal(final User user) {
+    public UserPrincipal(User user, Collection<? extends GrantedAuthority> authorities) {
         this.user = user;
+        this.authorities = authorities;
+    }
+
+    public static UserPrincipal create(User user) {
+
+        List<GrantedAuthority> authorities = Collections.
+                singletonList(new SimpleGrantedAuthority("ROLE_USER"));
+
+        return new UserPrincipal(user, authorities);
     }
 
     public Long getId() {
-        return this.user.getId();
+        return user.getId();
     }
 
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.singletonList(new SimpleGrantedAuthority("User"));
+    public String getEmail() {
+        return user.getEmail();
     }
 
     @Override
     public String getPassword() {
-        return this.user.getPassword();
+        return user.getPassword();
     }
 
     @Override
     public String getUsername() {
-        return this.user.getEmail();
+        return this.getEmail();
     }
 
     @Override
@@ -54,4 +65,10 @@ public class UserPrincipal implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return authorities;
+    }
+
 }

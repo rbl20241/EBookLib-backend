@@ -1,12 +1,20 @@
 package rb.ebooklib.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import rb.ebooklib.dto.UserDTO;
 import rb.ebooklib.model.User;
+import rb.ebooklib.payload.AuthResponse;
+import rb.ebooklib.payload.LoginRequest;
+import rb.ebooklib.payload.RegisterRequest;
 import rb.ebooklib.persistence.UserRepository;
+import rb.ebooklib.security.TokenProvider;
 import rb.ebooklib.util.AuthUtil;
 import rb.ebooklib.util.ViewObjectMappers;
 
@@ -21,35 +29,66 @@ import static rb.ebooklib.util.NullOrEmptyUtil.isNullOrEmpty;
 public class UserService {
 
     @Autowired
+    private AuthenticationManager authenticationManager;
+    @Autowired
+    private TokenProvider tokenProvider;
+    @Autowired
     private UserRepository userRepository;
     @Autowired
     private ViewObjectMappers viewObjectMappers;
     @Autowired
     private AuthUtil authUtil;
     @Autowired
-    private BCryptPasswordEncoder passwordEncoder;
+    private PasswordEncoder passwordEncoder;
+
+    @Value( "${app.auth.tokenExpirationMsec}" )
+    private long tokenExpirationMsec;
+
+
+    /**
+     * authenticate the client logging in to the application
+     *
+     * @param loginRequest the email and password provided by the client
+     * @return the accesstoken
+     */
+    public AuthResponse authenticateUser(final LoginRequest loginRequest) {
+
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        loginRequest.getUsername(),
+                        loginRequest.getPassword()
+                )
+        );
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        final String token = tokenProvider.createToken(authentication);
+        final AuthResponse response = new AuthResponse(token);
+        response.setTokenExpirationMsec(tokenExpirationMsec);
+        return response;
+    }
 
     /**
      * Registration of a new user
      *
-     * @param userDTO the user to register
+     * @param registerRequest the user to register
      * @return a responseEntity to return to the API
      */
     @Transactional
-    public User registerUser(final UserDTO userDTO) {
+    public User registerUser(final RegisterRequest registerRequest) {
         //check if email and password are filled
-        if (isNullOrEmpty(userDTO.getUsername()) || isNullOrEmpty(userDTO.getEmail())) {
+        if (isNullOrEmpty(registerRequest.getUsername()) || isNullOrEmpty(registerRequest.getEmail())) {
             throw new IllegalArgumentException("Gebruikersnaam en emailadres zijn verplicht");
         }
 
         //check if user already exists
-        if (userRepository.findByUsernameIgnoreCase(userDTO.getUsername()).isPresent()) {
+        if (userRepository.findByUsernameIgnoreCase(registerRequest.getUsername()).isPresent()) {
             throw new IllegalArgumentException("Deze gebruiker bestaat al.");
         }
 
-        userDTO.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+        registerRequest.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
 
-        return userRepository.save(viewObjectMappers.convertUserDTOToUser(userDTO));
+        return userRepository.save(viewObjectMappers.convertRegisterRequestToUser(registerRequest));
     }
 
     /**
@@ -103,4 +142,5 @@ public class UserService {
     public void logOut(final HttpServletRequest request, final HttpServletResponse response) {
         authUtil.logOut(request, response);
     }
+
 }
