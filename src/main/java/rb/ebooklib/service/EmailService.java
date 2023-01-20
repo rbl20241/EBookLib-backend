@@ -1,6 +1,5 @@
 package rb.ebooklib.service;
 
-import jakarta.mail.internet.MimeMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -11,8 +10,8 @@ import rb.ebooklib.model.Book;
 import rb.ebooklib.model.User;
 import rb.ebooklib.model.UserSettings;
 
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
 import java.io.File;
 import java.util.Properties;
 
@@ -55,7 +54,7 @@ public class EmailService {
         javaMailSender = getJavaMailSender();
 
         MimeMessage message = javaMailSender.createMimeMessage();
-        MimeMessageHelper helper = null;
+        MimeMessageHelper helper;
         try {
             helper = new MimeMessageHelper(message, true);
             helper.setSubject("Je hebt het boek '" + book.getTitle()  + "' ontvangen");
@@ -71,13 +70,10 @@ public class EmailService {
     }
 
     private String getText(String description) {
-        StringBuilder content = new StringBuilder();
-        content.append("Hoi, <br/><br/>");
-        content.append("Je hebt bovenstaand boek ontvangen.<br><br>");
-        content.append(description);
-        content.append("<br/><br/>");
-        content.append("Veel leesplezier!");
-
-        return content.toString();
+        return "Hoi, <br/><br/>" +
+                "Je hebt bovenstaand boek ontvangen.<br><br>" +
+                description +
+                "<br/><br/>" +
+                "Veel leesplezier!";
     }
 }
