@@ -124,7 +124,6 @@
             <version>0.11.5</version>
         </dependency>
 
-
         <!-- https://mvnrepository.com/artifact/com.mysql/mysql-connector-j -->
         <dependency>
             <groupId>com.mysql</groupId>
