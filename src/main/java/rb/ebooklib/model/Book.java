@@ -1,5 +1,6 @@
 package rb.ebooklib.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 import javax.persistence.*;
@@ -21,6 +22,7 @@ public class Book {
     private String author;
     private String title;
     private String imageLink;
+    private String tempImageLink;
     private String libraryMap;
     private String publisher;
     private String extension;

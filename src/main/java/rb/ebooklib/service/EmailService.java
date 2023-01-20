@@ -1,5 +1,6 @@
 package rb.ebooklib.service;
 
+import jakarta.mail.internet.MimeMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -10,8 +11,8 @@ import rb.ebooklib.model.Book;
 import rb.ebooklib.model.User;
 import rb.ebooklib.model.UserSettings;
 
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import java.io.File;
 import java.util.Properties;
 

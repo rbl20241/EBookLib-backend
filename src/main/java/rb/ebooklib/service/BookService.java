@@ -74,7 +74,8 @@ public class BookService {
     private int nrOfRequests_100s;
 
     @Transactional
-    public void updateDatasbase(final File file, final String timestamp) {
+    public void updateDatasbase(final File file, final String timestamp, final Boolean isOnlyAdd) {
+        boolean doUpdate = true;
         init_1sec_test();
         init_100sec_test();
 
@@ -83,9 +84,20 @@ public class BookService {
 
         Book bookDb;
         if (optionalBook.isPresent()) {
-            BookDTO bookDTO = viewObjectMappers.convertBookToBookDto(optionalBook.get());
-            log.info("Update boek: " + bookDTO.getTitle() + " (" + bookDTO.getGenre() + ")");
-            bookDb = existingBook(bookDTO);
+            StringBuilder sb = new StringBuilder();
+            sb.append(optionalBook.get().getAuthor()).append(" - ")
+                    .append(optionalBook.get().getTitle()).append(" (")
+                    .append(optionalBook.get().getGenre().getName()).append(")");
+            if (isOnlyAdd) {
+                bookDb = new Book();
+                doUpdate = false;
+                log.info(sb.toString());
+            }
+            else {
+                BookDTO bookDTO = viewObjectMappers.convertBookToBookDto(optionalBook.get());
+                log.info(String.format("Update book: %s", sb));
+                bookDb = existingBook(bookDTO);
+            }
         } else {
             final String root = getRoot();
             final String librayMap = filename.substring(root.length() + 1, filename.lastIndexOf(File.separator));
@@ -93,14 +105,16 @@ public class BookService {
             bookDb = createBook(book);
         }
 
-        bookDb.setTimestamp(timestamp);
-        bookRepository.save(bookDb);
+        if (doUpdate) {
+            bookDb.setTimestamp(timestamp);
+            bookRepository.save(bookDb);
+        }
     }
 
     @Transactional
     private Book createBook(final Book book) {
 
-        log.info("Current book: " + book.getTitle() + "(" + book.getGenre().getName() + ")");
+        log.info(String.format("Add book: %s - %s (%s)", book.getAuthor(), book.getTitle(), book.getGenre().getName()));
         final List<Author> authorList = authorService.mergeNewAuthors(book.getAuthors());
         final List<Category> categoryList = categoryService.mergeNewCategories(book.getCategories());
         final Genre genre = genreService.mergeNewGenre(book.getGenre());
@@ -128,6 +142,7 @@ public class BookService {
 
         currentBook.setDescription(bookDTO.getDescription());
         currentBook.setImageLink(bookDTO.getImageLink());
+        currentBook.setTempImageLink(bookDTO.getTempImageLink());
         currentBook.setCategories(bookDTO.getCategories());
         currentBook.setAuthors(bookDTO.getAuthors());
         if (!currentBook.getIsbn().equals(bookDTO.getIsbn())) {
@@ -155,6 +170,7 @@ public class BookService {
 
         currentBook.setDescription(bookDTO.getDescription());
         currentBook.setImageLink(bookDTO.getImageLink());
+        currentBook.setTempImageLink((bookDTO.getTempImageLink()));
         currentBook.setCategories(bookDTO.getCategories());
         currentBook.setAuthors(bookDTO.getAuthors());
         if (!currentBook.getIsbn().equals(bookDTO.getIsbn())) {
@@ -261,6 +277,7 @@ public class BookService {
             book.setPublisher(readPublisher(epubBook.getMetadata()));
             book.setTitle(readTitle(epubBook));
             book.setImageLink(readImageLink(epubBook));
+            book.setTempImageLink(readTempImageLink(book));
             book.setIsbn(readIsbn(epubBook.getMetadata()));
             book.setCategories(readCategories(epubBook.getMetadata()));
             book.setIdentifiers(readIdentifiers(epubBook.getMetadata()));
