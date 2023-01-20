@@ -3,6 +3,7 @@ package rb.ebooklib.ebooks.util;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import rb.ebooklib.ebooks.epub.domain.EpubBook;
+import rb.ebooklib.model.Book;
 import rb.ebooklib.model.Identifier;
 import rb.ebooklib.ebooks.epub.domain.Metadata;
 import rb.ebooklib.ebooks.epub.domain.Resource;
@@ -10,6 +11,8 @@ import rb.ebooklib.model.Author;
 import rb.ebooklib.model.Category;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.*;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -254,16 +257,45 @@ public class BookUtil {
 
     public static String readImageLink(EpubBook epubBook) {
         String imageLink = "";
-        Resource coverPage = epubBook.getGuide().getCoverPage();
-        if (isNullObject(coverPage)) {
-            coverPage = epubBook.getSpine().getResource(0);
-        }
+        Resource coverImage = epubBook.getCoverImage();
 
-        if (isNotNullObject(coverPage)) {
-            imageLink = coverPage.getOriginalHref();
+        if (isNotNullObject(coverImage)) {
+            imageLink = coverImage.getOriginalHref();
         }
 
         return imageLink;
+    }
+
+    public static String readTempImageLink(final Book book) {
+        var tempImageLink = "";
+        if (isNotNullOrEmptyString(book.getImageLink())) {
+            tempImageLink = makeTempImageLink(book);
+        }
+
+        return tempImageLink;
+    }
+
+    private static String makeTempImageLink(Book book) {
+        var tempImageLink = "";
+        try {
+            String imageLink = book.getImageLink();
+            String imageFile = imageLink.substring(imageLink.lastIndexOf("/")+1);
+            Path tempPath = Paths.get("c:/Temp/boeken");
+            if (!Files.exists(tempPath)) {
+                Files.createDirectory(tempPath);
+            }
+
+            //Path epub = Paths.get(book.getFilename());
+            //FileSystem fileSystem = FileSystems.newFileSystem(epub, null);
+            //Path fileToExtract = fileSystem.getPath(imageLink);
+            Path tempImage = Paths.get(tempPath.toString(), imageFile);
+            //Files.copy(fileToExtract, tempImage);
+            tempImageLink = tempImage.toString();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return tempImageLink;
     }
 
     public static String readLanguage(final Metadata metadata) {

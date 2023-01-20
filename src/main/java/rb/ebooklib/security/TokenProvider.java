@@ -25,7 +25,8 @@ public class TokenProvider {
         Date expiryDate = new Date(now.getTime() + tokenExpirationMsec);
 
         return Jwts.builder()
-                .setSubject(Long.toString(userPrincipal.getId()))
+                .setId(Long.toString(userPrincipal.getId()))
+                .setSubject(userPrincipal.getUsername())
                 .setIssuedAt(new Date())
                 .setExpiration(expiryDate)
                 .signWith(SignatureAlgorithm.HS512, tokenSecret)
@@ -38,7 +39,7 @@ public class TokenProvider {
                 .parseClaimsJws(token)
                 .getBody();
 
-        return Long.parseLong(claims.getSubject());
+        return Long.parseLong(claims.getId());
     }
 
     public String getUsernameFromToken(String token) {

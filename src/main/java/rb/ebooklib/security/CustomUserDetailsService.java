@@ -17,7 +17,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(final String username) throws UsernameNotFoundException {
         final User user = userRepository.findByUsernameIgnoreCase(username)
-                .orElseThrow(() -> new IllegalArgumentException("Gebruiker bestaat niet"));
+                .orElseThrow(() -> new IllegalArgumentException("Gebruiker " + username + " bestaat niet"));
         return UserPrincipal.create(user);
     }
 }

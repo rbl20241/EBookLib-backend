@@ -54,7 +54,7 @@ public class EmailService {
         javaMailSender = getJavaMailSender();
 
         MimeMessage message = javaMailSender.createMimeMessage();
-        MimeMessageHelper helper = null;
+        MimeMessageHelper helper;
         try {
             helper = new MimeMessageHelper(message, true);
             helper.setSubject("Je hebt het boek '" + book.getTitle()  + "' ontvangen");
@@ -70,13 +70,10 @@ public class EmailService {
     }
 
     private String getText(String description) {
-        StringBuilder content = new StringBuilder();
-        content.append("Hoi, <br/><br/>");
-        content.append("Je hebt bovenstaand boek ontvangen.<br><br>");
-        content.append(description);
-        content.append("<br/><br/>");
-        content.append("Veel leesplezier!");
-
-        return content.toString();
+        return "Hoi, <br/><br/>" +
+                "Je hebt bovenstaand boek ontvangen.<br><br>" +
+                description +
+                "<br/><br/>" +
+                "Veel leesplezier!";
     }
 }

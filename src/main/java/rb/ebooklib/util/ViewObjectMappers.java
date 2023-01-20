@@ -65,6 +65,7 @@ public class ViewObjectMappers {
         bookDTO.setTitle(book.getTitle());
         bookDTO.setLibraryMap(book.getLibraryMap());
         bookDTO.setImageLink(book.getImageLink());
+        bookDTO.setTempImageLink(book.getTempImageLink());
         bookDTO.setGenre(book.getGenre());
         bookDTO.setPublisher(book.getPublisher());
         bookDTO.setExtension(book.getExtension());
@@ -73,6 +74,7 @@ public class ViewObjectMappers {
         bookDTO.setIsRead(book.getIsRead());
         bookDTO.setLanguage(book.getLanguage());
         bookDTO.setTimestamp(book.getTimestamp());
+        bookDTO.setTempImageLink(book.getTempImageLink());
 
         if (book.getAuthors() == null) {
             List<Author> authors = new ArrayList<>();
@@ -104,6 +106,7 @@ public class ViewObjectMappers {
         book.setTitle(bookDTO.getTitle());
         book.setLibraryMap(bookDTO.getLibraryMap());
         book.setImageLink(bookDTO.getImageLink());
+        book.setTempImageLink(bookDTO.getTempImageLink());
         book.setGenre(bookDTO.getGenre());
         book.setGenre(new Genre(bookDTO.getLibraryMap()));
         book.setPublisher(bookDTO.getPublisher());
