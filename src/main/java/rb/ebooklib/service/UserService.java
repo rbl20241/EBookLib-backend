@@ -18,9 +18,9 @@ import rb.ebooklib.security.TokenProvider;
 import rb.ebooklib.util.AuthUtil;
 import rb.ebooklib.util.ViewObjectMappers;
 
-import javax.persistence.EntityNotFoundException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.Optional;
 
 import static rb.ebooklib.util.NullOrEmptyUtil.isNullOrEmpty;

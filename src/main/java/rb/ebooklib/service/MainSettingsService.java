@@ -8,7 +8,7 @@ import rb.ebooklib.model.MainSettings;
 import rb.ebooklib.persistence.MainSettingsRepository;
 import rb.ebooklib.util.ViewObjectMappers;
 
-import javax.persistence.EntityNotFoundException;
+import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
 
 @Service
@@ -23,7 +23,7 @@ public class MainSettingsService {
 
     public MainSettings getMainSettings() {
         List<MainSettings> mainSettings = mainSettingsRepository.findAll();
-        if (mainSettings.size() == 0) {
+        if (mainSettings.isEmpty()) {
             throw new EntityNotFoundException("Geen instellingen gevonden");
         }
         else {
@@ -35,7 +35,7 @@ public class MainSettingsService {
     public MainSettings createSettings(final MainSettingsDTO mainSettingsDTO) {
         List<MainSettings> dbSettings = mainSettingsRepository.findAll();
 
-        if (dbSettings.size() > 0) {
+        if (dbSettings.isEmpty()) {
             return updateSettings(mainSettingsDTO);
         }
         else {

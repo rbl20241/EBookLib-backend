@@ -1,7 +1,6 @@
 package rb.ebooklib.configuration;
 
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.apache.hc.client5.http.classic.HttpClient;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,7 +15,7 @@ import java.util.Collections;
 public class RestTemplateConfiguration {
 
     @Bean
-    public RestTemplate restTemplate(RestTemplateBuilder builder, CloseableHttpClient httpClient) {
+    public RestTemplate restTemplate(RestTemplateBuilder builder, HttpClient httpClient) {
         return builder
                 .requestFactory(() -> new BufferingClientHttpRequestFactory(clientHttpRequestFactory(httpClient)))
                 .interceptors(Collections.singletonList(new RequestResponseLoggingInterceptor()))
@@ -24,7 +23,7 @@ public class RestTemplateConfiguration {
     }
 
     @Bean
-    public HttpComponentsClientHttpRequestFactory clientHttpRequestFactory(CloseableHttpClient httpClient) {
+    public HttpComponentsClientHttpRequestFactory clientHttpRequestFactory(HttpClient httpClient) {
         return new HttpComponentsClientHttpRequestFactory(httpClient);
     }
 }

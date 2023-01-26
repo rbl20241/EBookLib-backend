@@ -14,7 +14,7 @@ import rb.ebooklib.model.*;
 import rb.ebooklib.persistence.RenameRepository;
 import rb.ebooklib.util.ViewObjectMappers;
 
-import javax.persistence.EntityNotFoundException;
+import jakarta.persistence.EntityNotFoundException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;

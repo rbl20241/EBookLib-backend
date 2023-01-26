@@ -9,7 +9,7 @@ import rb.ebooklib.model.User;
 import rb.ebooklib.persistence.UserSettingsRepository;
 import rb.ebooklib.util.ViewObjectMappers;
 
-import javax.persistence.EntityNotFoundException;
+import jakarta.persistence.EntityNotFoundException;
 import java.util.Optional;
 
 @Service

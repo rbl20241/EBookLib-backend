@@ -4,10 +4,10 @@ import lombok.Data;
 import rb.ebooklib.util.StringUtil;
 import rb.ebooklib.util.Scheme;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import java.util.UUID;
 
 import static rb.ebooklib.util.StringUtil.defaultIfNull;

@@ -17,7 +17,7 @@ import rb.ebooklib.model.Book_;
 import rb.ebooklib.persistence.BookRepository;
 import rb.ebooklib.util.ViewObjectMappers;
 
-import javax.persistence.EntityNotFoundException;
+import jakarta.persistence.EntityNotFoundException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;

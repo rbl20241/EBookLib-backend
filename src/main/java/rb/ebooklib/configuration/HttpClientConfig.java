@@ -1,8 +1,9 @@
 package rb.ebooklib.configuration;
 
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.core5.util.Timeout;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -10,7 +11,7 @@ import org.springframework.context.annotation.Configuration;
 public class HttpClientConfig {
 
     // Determines the timeout in milliseconds until a connection is established.
-    private static final int CONNECT_TIMEOUT = 30000;
+    // private static final int CONNECT_TIMEOUT = 30000;
 
     // The timeout when requesting a connection from the connection manager.
     private static final int REQUEST_TIMEOUT = 30000;
@@ -21,9 +22,9 @@ public class HttpClientConfig {
     @Bean
     public CloseableHttpClient httpClient() {
         RequestConfig requestConfig = RequestConfig.custom()
-                .setConnectionRequestTimeout(REQUEST_TIMEOUT)
-                .setConnectTimeout(CONNECT_TIMEOUT)
-                .setSocketTimeout(SOCKET_TIMEOUT).build();
+                .setConnectionRequestTimeout(Timeout.ofDays(REQUEST_TIMEOUT))
+                .setResponseTimeout(Timeout.ofDays(SOCKET_TIMEOUT))
+                .build();
 
         return HttpClients.custom()
                 .setDefaultRequestConfig(requestConfig)

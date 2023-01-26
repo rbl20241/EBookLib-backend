@@ -13,7 +13,7 @@ import rb.ebooklib.payload.LoginRequest;
 import rb.ebooklib.payload.RegisterRequest;
 import rb.ebooklib.service.UserService;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/auth")

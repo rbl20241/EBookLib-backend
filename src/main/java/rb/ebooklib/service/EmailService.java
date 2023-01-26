@@ -10,8 +10,8 @@ import rb.ebooklib.model.Book;
 import rb.ebooklib.model.User;
 import rb.ebooklib.model.UserSettings;
 
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import java.io.File;
 import java.util.Properties;
 

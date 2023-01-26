@@ -7,7 +7,7 @@ import rb.ebooklib.model.Book_;
 import rb.ebooklib.model.Category_;
 import rb.ebooklib.model.Genre_;
 
-import javax.persistence.criteria.*;
+import jakarta.persistence.criteria.*;
 
 import static rb.ebooklib.util.StringUtil.isEmpty;
 
