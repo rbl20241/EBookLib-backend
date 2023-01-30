@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
+import javax.crypto.spec.SecretKeySpec;
+import java.security.Key;
 import java.util.Date;
 
 @Service
@@ -24,18 +26,21 @@ public class TokenProvider {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + tokenExpirationMsec);
 
+        Key key = new SecretKeySpec(tokenSecret.getBytes(), "AES");
+
         return Jwts.builder()
                 .setId(Long.toString(userPrincipal.getId()))
                 .setSubject(userPrincipal.getUsername())
                 .setIssuedAt(new Date())
                 .setExpiration(expiryDate)
-                .signWith(SignatureAlgorithm.HS512, tokenSecret)
+                .signWith(key, SignatureAlgorithm.HS512)
                 .compact();
     }
 
     public Long getUserIdFromToken(String token) {
-        Claims claims = Jwts.parser()
-                .setSigningKey(tokenSecret)
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(tokenSecret.getBytes())
+                .build()
                 .parseClaimsJws(token)
                 .getBody();
 
@@ -43,8 +48,9 @@ public class TokenProvider {
     }
 
     public String getUsernameFromToken(String token) {
-        Claims claims = Jwts.parser()
-                .setSigningKey(tokenSecret)
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(tokenSecret.getBytes())
+                .build()
                 .parseClaimsJws(token)
                 .getBody();
 
@@ -53,10 +59,8 @@ public class TokenProvider {
 
     public boolean validateToken(String authToken) {
         try {
-            Jwts.parser().setSigningKey(tokenSecret).parseClaimsJws(authToken);
+            Jwts.parserBuilder().setSigningKey(tokenSecret.getBytes()).build().parseClaimsJws(authToken);
             return true;
-        } catch (SignatureException ex) {
-            log.error("Invalid JWT signature");
         } catch (MalformedJwtException ex) {
             log.error("Invalid JWT token");
         } catch (ExpiredJwtException ex) {
