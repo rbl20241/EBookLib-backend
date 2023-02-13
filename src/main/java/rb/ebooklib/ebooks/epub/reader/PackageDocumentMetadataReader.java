@@ -15,7 +15,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import rb.ebooklib.ebooks.epub.domain.EpubAuthor;
 import rb.ebooklib.ebooks.epub.domain.Date;
-import rb.ebooklib.model.Identifier;
+import rb.ebooklib.models.Identifier;
 import rb.ebooklib.ebooks.epub.domain.Metadata;
 import rb.ebooklib.util.StringUtil;
 

@@ -1,6 +1,6 @@
 package rb.ebooklib.ebooks.epub.domain;
 
-import rb.ebooklib.model.Identifier;
+import rb.ebooklib.models.Identifier;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;

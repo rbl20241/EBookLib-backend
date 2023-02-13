@@ -1,10 +1,6 @@
 package rb.ebooklib.util;
 
 
-import rb.ebooklib.model.Author;
-
-import java.util.List;
-
 public class StringUtil {
 
     public static boolean isNotBlank(String text) {

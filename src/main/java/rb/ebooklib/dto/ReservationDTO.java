@@ -2,7 +2,7 @@ package rb.ebooklib.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
-import rb.ebooklib.model.User;
+import rb.ebooklib.models.User;
 import rb.ebooklib.util.Status;
 
 import java.time.LocalDate;

@@ -5,8 +5,8 @@ import rb.ebooklib.dto.*;
 import rb.ebooklib.isbnapimodels.googleapi.GoogleBookResponse;
 import rb.ebooklib.isbnapimodels.googleapi.VolumeInfo;
 import rb.ebooklib.isbnapimodels.openlibraryapi.OpenLibraryBookResponse;
-import rb.ebooklib.model.*;
-import rb.ebooklib.payload.RegisterRequest;
+import rb.ebooklib.models.*;
+import rb.ebooklib.payload.request.SignupRequest;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -216,12 +216,13 @@ public class ViewObjectMappers {
         return rename;
     }
 
-    public User convertRegisterRequestToUser(final RegisterRequest registerRequest) {
+    public User convertSignupRequestToUser(final SignupRequest signupRequest) {
         final User user = new User();
 
-        user.setPassword(registerRequest.getPassword());
-        user.setUsername(registerRequest.getUsername());
-        user.setEmail(registerRequest.getEmail());
+        user.setPassword(signupRequest.getPassword());
+        user.setUsername(signupRequest.getUsername());
+        user.setEmail(signupRequest.getEmail());
+        //user.setRoles(signupRequest.getRole());
 
         return user;
     }

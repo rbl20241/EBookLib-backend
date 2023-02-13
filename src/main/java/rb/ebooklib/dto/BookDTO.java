@@ -1,10 +1,10 @@
 package rb.ebooklib.dto;
 
 import lombok.Data;
-import rb.ebooklib.model.Author;
-import rb.ebooklib.model.Category;
-import rb.ebooklib.model.Genre;
-import rb.ebooklib.model.Identifier;
+import rb.ebooklib.models.Author;
+import rb.ebooklib.models.Category;
+import rb.ebooklib.models.Genre;
+import rb.ebooklib.models.Identifier;
 
 import java.util.List;
 

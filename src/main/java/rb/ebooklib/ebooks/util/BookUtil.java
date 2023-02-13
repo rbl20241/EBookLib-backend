@@ -3,12 +3,12 @@ package rb.ebooklib.ebooks.util;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import rb.ebooklib.ebooks.epub.domain.EpubBook;
-import rb.ebooklib.model.Book;
-import rb.ebooklib.model.Identifier;
+import rb.ebooklib.models.Book;
+import rb.ebooklib.models.Identifier;
 import rb.ebooklib.ebooks.epub.domain.Metadata;
 import rb.ebooklib.ebooks.epub.domain.Resource;
-import rb.ebooklib.model.Author;
-import rb.ebooklib.model.Category;
+import rb.ebooklib.models.Author;
+import rb.ebooklib.models.Category;
 
 import java.io.File;
 import java.io.IOException;

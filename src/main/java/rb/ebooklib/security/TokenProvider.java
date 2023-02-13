@@ -14,10 +14,10 @@ import java.util.Date;
 @Slf4j
 public class TokenProvider {
 
-    @Value( "${app.auth.tokenSecret}" )
+    @Value( "${app.auth.jwtSecret}" )
     private String tokenSecret;
 
-    @Value( "${app.auth.tokenExpirationMsec}" )
+    @Value( "${app.auth.jwtExpirationMsec}" )
     private long tokenExpirationMsec;
 
     public String createToken(Authentication authentication) {
