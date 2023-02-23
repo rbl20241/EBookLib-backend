@@ -14,14 +14,13 @@ import java.util.Objects;
 @Getter
 @Setter
 @ToString
+@RequiredArgsConstructor
 public class Category {
 
     @Id
     @GeneratedValue
     private Long id;
     private String name;
-
-    protected Category() {}
 
     public Category(final String name) {
         this.name = name;

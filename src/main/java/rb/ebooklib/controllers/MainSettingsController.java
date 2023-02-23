@@ -16,7 +16,7 @@ public class MainSettingsController {
     @Autowired
     private MainSettingsService mainSettingsService;
 
-    @PostMapping
+    @PostMapping("/")
     public ResponseEntity<MainSettings> createMainSettings(@RequestBody final MainSettingsDTO mainSettingsDTO) {
         final MainSettings mainSettings = mainSettingsService.createSettings(mainSettingsDTO);
         return new ResponseEntity<>(mainSettings, HttpStatus.OK);

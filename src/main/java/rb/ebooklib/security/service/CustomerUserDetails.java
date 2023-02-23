@@ -1,31 +1,27 @@
-package rb.ebooklib.security;
+package rb.ebooklib.security.service;
 
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import rb.ebooklib.models.User;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 
+public class CustomerUserDetails implements UserDetails {
+    private static final long serialVersionUID = 1L;
 
-public class UserPrincipal implements UserDetails {
+    private User user;
 
-    private final User user;
-    private final Collection<? extends GrantedAuthority> authorities;
-
-    public UserPrincipal(User user, Collection<? extends GrantedAuthority> authorities) {
+    public CustomerUserDetails(User user) {
         this.user = user;
-        this.authorities = authorities;
     }
 
-    public static UserPrincipal create(User user) {
+    public static CustomerUserDetails build(User user) {
+        return new CustomerUserDetails(user);
+    }
 
-        List<GrantedAuthority> authorities = Collections.
-                singletonList(new SimpleGrantedAuthority("ROLE_USER"));
-
-        return new UserPrincipal(user, authorities);
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return null;
     }
 
     public Long getId() {
@@ -64,11 +60,6 @@ public class UserPrincipal implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
-    }
-
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return authorities;
     }
 
 }

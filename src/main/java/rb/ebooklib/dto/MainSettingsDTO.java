@@ -7,4 +7,5 @@ public class MainSettingsDTO {
     private Long id;
     private String libraryMap;
     private String calibreCommand;
+    private String tempMap;
 }

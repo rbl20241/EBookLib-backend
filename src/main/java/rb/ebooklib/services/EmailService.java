@@ -1,7 +1,9 @@
 package rb.ebooklib.services;
 
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -45,7 +47,7 @@ public class EmailService {
         props.put("mail.transport.protocol", "smtp");
         props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.starttls.enable", "true");
-        props.put("mail.debug", "false");
+        props.put("mail.debug", "true");
 
         return mailSender;
     }
@@ -62,7 +64,11 @@ public class EmailService {
             helper.setTo(isNullOrEmptyString(mailTo) ? userSettings.getMailTo() : mailTo);
             helper.setReplyTo(userSettings.getMailUserName());
             helper.setText(getText(book.getDescription()), true);
-            helper.addAttachment(book.getAuthor() + " - " + book.getTitle() + "." + book.getExtension(), new File(book.getFilename()));
+
+            val attachmentText = book.getAuthor() + " - " + book.getTitle() + "." + book.getExtension();
+            val attachmentFile = new FileSystemResource((new File(book.getFilename())));
+            helper.addAttachment(attachmentText, attachmentFile);;
+            //helper.addAttachment(book.getAuthor() + " - " + book.getTitle() + "." + book.getExtension(), new File(book.getFilename()));
             javaMailSender.send(message);
         } catch (MessagingException e) {
             e.printStackTrace();

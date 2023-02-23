@@ -3,16 +3,18 @@ package rb.ebooklib.ebooks.util;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import rb.ebooklib.ebooks.epub.domain.EpubBook;
-import rb.ebooklib.models.Book;
-import rb.ebooklib.models.Identifier;
 import rb.ebooklib.ebooks.epub.domain.Metadata;
 import rb.ebooklib.ebooks.epub.domain.Resource;
 import rb.ebooklib.models.Author;
+import rb.ebooklib.models.Book;
 import rb.ebooklib.models.Category;
+import rb.ebooklib.models.Identifier;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -20,7 +22,8 @@ import java.util.Date;
 import java.util.List;
 
 import static rb.ebooklib.ebooks.util.Constants.*;
-import static rb.ebooklib.util.StringUtil.*;
+import static rb.ebooklib.util.StringUtil.isBlank;
+import static rb.ebooklib.util.StringUtil.startWithCapital;
 
 public class BookUtil {
 
@@ -266,36 +269,37 @@ public class BookUtil {
         return imageLink;
     }
 
-    public static String readTempImageLink(final Book book) {
+    public static String readTempImageLink(final Book book, final String tempMap) {
         var tempImageLink = "";
         if (isNotNullOrEmptyString(book.getImageLink())) {
-            tempImageLink = makeTempImageLink(book);
+            tempImageLink = makeTempImageLink(book, tempMap);
         }
 
         return tempImageLink;
     }
 
-    private static String makeTempImageLink(Book book) {
-        var tempImageLink = "";
-        try {
+    private static String makeTempImageLink(final Book book, final String tempMap) {
+//        var tempImageLink = "";
+//        try {
             String imageLink = book.getImageLink();
-            String imageFile = imageLink.substring(imageLink.lastIndexOf("/")+1);
-            Path tempPath = Paths.get("c:/Temp/boeken");
-            if (!Files.exists(tempPath)) {
-                Files.createDirectory(tempPath);
-            }
+            String imageFile = imageLink.substring(imageLink.lastIndexOf("/"));
+            return tempMap + "/current-cover.jpg";
+//            Path tempPath = Paths.get(tempMap);
+//            if (!Files.exists(tempPath)) {
+//                Files.createDirectory(tempPath);
+//            }
+//
+//            //Path epub = Paths.get(book.getFilename());
+//            //FileSystem fileSystem = FileSystems.newFileSystem(epub, null);
+//            //Path fileToExtract = fileSystem.getPath(imageLink);
+//            Path tempImage = Paths.get(tempPath.toString(), imageFile);
+//            //Files.copy(fileToExtract, tempImage);
+//            tempImageLink = tempImage.toString();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
 
-            //Path epub = Paths.get(book.getFilename());
-            //FileSystem fileSystem = FileSystems.newFileSystem(epub, null);
-            //Path fileToExtract = fileSystem.getPath(imageLink);
-            Path tempImage = Paths.get(tempPath.toString(), imageFile);
-            //Files.copy(fileToExtract, tempImage);
-            tempImageLink = tempImage.toString();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return tempImageLink;
+//        return tempImageLink;
     }
 
     public static String readLanguage(final Metadata metadata) {

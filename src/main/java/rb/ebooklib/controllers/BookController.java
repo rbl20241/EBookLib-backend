@@ -11,12 +11,13 @@ import rb.ebooklib.dto.PageDTO;
 import rb.ebooklib.models.Book;
 import rb.ebooklib.services.BookService;
 import rb.ebooklib.services.EmailService;
+import rb.ebooklib.services.MainSettingsService;
 import rb.ebooklib.services.ToolService;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.*;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 import static rb.ebooklib.ebooks.util.BookUtil.*;
 
@@ -36,6 +37,9 @@ public class BookController {
 
     @Autowired
     private EmailService emailService;
+
+    @Autowired
+    private MainSettingsService mainSettingsService;
 
     @PostMapping
     public void createBooks(@RequestParam(value = "useApi") final String useApi) {
@@ -83,32 +87,29 @@ public class BookController {
     }
 
     private void createTempImageLink(Book book) {
-        try {
-            Path tempImageLink = Paths.get(book.getTempImageLink());
-            Path tempPath = Paths.get("c:/Temp/boeken");
-            if (!Files.exists(tempPath)) {
-                Files.createDirectory(tempPath);
-            }
+        //try {
+            //Path tempImageLink = Paths.get(book.getTempImageLink());
+            //Path tempPath = Paths.get(mainSettingsService.getMainSettings().getTempMap());
+            //if (!Files.exists(tempPath)) {
+            //    Files.createDirectory(tempPath);
+            //}
 
-            Path epub = Paths.get(book.getFilename());
-            FileSystem fileSystem = FileSystems.newFileSystem(epub, (Map<String, ?>) null);
-            Path fileToExtract = fileSystem.getPath(book.getImageLink());
-            Files.copy(fileToExtract, tempImageLink);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+            //Path epub = Paths.get(book.getFilename());
+            //FileSystem fileSystem = FileSystems.newFileSystem(epub);
+            //Path fileToExtract = fileSystem.getPath(book.getImageLink());
+            //Files.copy(fileToExtract, tempImageLink);
+        //} catch (IOException e) {
+        //    e.printStackTrace();
+        //}
     }
 
     private void removeLastTempImageLink() {
-        Path tempPath = Paths.get("c:/Temp/boeken");
-        try {
-            Files.walk(tempPath)
-                    .sorted(Comparator.reverseOrder())
-                    .map(Path::toFile)
-                    .forEach(File::delete);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//        Path tempPath = Paths.get(mainSettingsService.getMainSettings().getTempMap());
+//        try {
+//            FileUtils.cleanDirectory(tempPath.toFile());
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
     }
 
     @GetMapping

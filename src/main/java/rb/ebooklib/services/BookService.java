@@ -1,5 +1,6 @@
 package rb.ebooklib.services;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,11 +14,9 @@ import rb.ebooklib.dto.PageDTO;
 import rb.ebooklib.ebooks.epub.domain.EpubBook;
 import rb.ebooklib.ebooks.epub.reader.EpubReader;
 import rb.ebooklib.models.*;
-import rb.ebooklib.models.Book_;
 import rb.ebooklib.repositories.BookRepository;
 import rb.ebooklib.util.ViewObjectMappers;
 
-import jakarta.persistence.EntityNotFoundException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -226,7 +225,7 @@ public class BookService {
         Book book = new Book();
         book.setFilename(path);
         book.setAuthor(getAuthor(path));
-        ;
+
         book.setLibraryMap(libraryMap);
         book.setGenre(new Genre(startWithCapital(libraryMap)));
         book.setExtension(getExtension(path));
@@ -242,9 +241,13 @@ public class BookService {
         }
 
         if (isNullOrEmptyString(book.getAuthor())) {
-            List<Author> authors = bookRepository.findAuthorsByFilename(path);
-            if (isNotNullOrEmptyList(authors)) {
-                book.setAuthor(authors.get(0).getName());
+            if (isEpub(path)) {
+                List<Author> authors = bookRepository.findAuthorsByFilename(path);
+                if (isNotNullOrEmptyList(authors)) {
+                    book.setAuthor(authors.get(0).getName());
+                } else {
+                    book.setAuthor("Onbekend");
+                }
             } else {
                 book.setAuthor("Onbekend");
             }
@@ -255,7 +258,8 @@ public class BookService {
 
     private Book readEpubBook(final Book book, final String currentFile) {
         try {
-            EpubBook epubBook = (new EpubReader()).readEpub(new FileInputStream(currentFile), CHARACTER_ENCODING);
+            EpubReader epubReader = new EpubReader();
+            EpubBook epubBook = epubReader.readEpub(new FileInputStream(currentFile), CHARACTER_ENCODING);
             Book currentBook = convertEpubBookToBook(book, epubBook);
 
             // currentBook = readGoogleApi(currentBook);
@@ -277,7 +281,7 @@ public class BookService {
             book.setPublisher(readPublisher(epubBook.getMetadata()));
             book.setTitle(readTitle(epubBook));
             book.setImageLink(readImageLink(epubBook));
-            book.setTempImageLink(readTempImageLink(book));
+            book.setTempImageLink(readTempImageLink(book, mainSettingsService.getMainSettings().getTempMap()));
             book.setIsbn(readIsbn(epubBook.getMetadata()));
             book.setCategories(readCategories(epubBook.getMetadata()));
             book.setIdentifiers(readIdentifiers(epubBook.getMetadata()));

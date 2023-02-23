@@ -51,6 +51,7 @@ public class MainSettingsService {
 
         mainSettings.setLibraryMap(mainSettingsDTO.getLibraryMap());
         mainSettings.setCalibreCommand(mainSettingsDTO.getCalibreCommand());
+        mainSettings.setTempMap(mainSettingsDTO.getTempMap());
         return mainSettingsRepository.save(mainSettings);
     }
 }

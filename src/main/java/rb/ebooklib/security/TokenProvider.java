@@ -5,42 +5,38 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import rb.ebooklib.security.service.CustomerUserDetails;
 
-import javax.crypto.spec.SecretKeySpec;
-import java.security.Key;
 import java.util.Date;
 
 @Service
 @Slf4j
 public class TokenProvider {
 
-    @Value( "${app.auth.jwtSecret}" )
-    private String tokenSecret;
+    @Value("${app.auth.jwtSecret}")
+    private String jwtSecret;
 
-    @Value( "${app.auth.jwtExpirationMsec}" )
-    private long tokenExpirationMsec;
+    @Value("${app.auth.jwtExpirationMsec}")
+    private int jwtExpirationMsec;
 
     public String createToken(Authentication authentication) {
-        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+        CustomerUserDetails userDetails = (CustomerUserDetails) authentication.getPrincipal();
 
         Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + tokenExpirationMsec);
-
-        Key key = new SecretKeySpec(tokenSecret.getBytes(), "AES");
+        Date expiryDate = new Date(now.getTime() + jwtExpirationMsec);
 
         return Jwts.builder()
-                .setId(Long.toString(userPrincipal.getId()))
-                .setSubject(userPrincipal.getUsername())
+                .setId(Long.toString(userDetails.getId()))
+                .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date())
                 .setExpiration(expiryDate)
-                .signWith(key, SignatureAlgorithm.HS512)
+                .signWith(SignatureAlgorithm.HS512, jwtSecret)
                 .compact();
     }
 
     public Long getUserIdFromToken(String token) {
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(tokenSecret.getBytes())
-                .build()
+        Claims claims = Jwts.parser()
+                .setSigningKey(jwtSecret)
                 .parseClaimsJws(token)
                 .getBody();
 
@@ -48,9 +44,8 @@ public class TokenProvider {
     }
 
     public String getUsernameFromToken(String token) {
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(tokenSecret.getBytes())
-                .build()
+        Claims claims = Jwts.parser()
+                .setSigningKey(jwtSecret)
                 .parseClaimsJws(token)
                 .getBody();
 
@@ -59,8 +54,10 @@ public class TokenProvider {
 
     public boolean validateToken(String authToken) {
         try {
-            Jwts.parserBuilder().setSigningKey(tokenSecret.getBytes()).build().parseClaimsJws(authToken);
+            Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(authToken);
             return true;
+        } catch (SignatureException ex) {
+            log.error("Invalid JWT signature");
         } catch (MalformedJwtException ex) {
             log.error("Invalid JWT token");
         } catch (ExpiredJwtException ex) {

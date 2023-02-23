@@ -23,6 +23,7 @@ public class MainSettings {
 
     private String libraryMap;
     private String calibreCommand;
+    private String tempMap;
 
     @Override
     public boolean equals(final Object o) {

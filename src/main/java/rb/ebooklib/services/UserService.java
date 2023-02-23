@@ -1,11 +1,13 @@
 package rb.ebooklib.services;
 
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,14 +16,9 @@ import rb.ebooklib.payload.AuthResponse;
 import rb.ebooklib.payload.request.LoginRequest;
 import rb.ebooklib.payload.request.SignupRequest;
 import rb.ebooklib.repositories.UserRepository;
-import rb.ebooklib.security.TokenProvider;
+import rb.ebooklib.security.jwt.JwtUtils;
 import rb.ebooklib.util.AuthUtil;
 import rb.ebooklib.util.ViewObjectMappers;
-
-import jakarta.persistence.EntityNotFoundException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import java.util.Optional;
 
 import static rb.ebooklib.util.NullOrEmptyUtil.isNullOrEmpty;
 
@@ -31,8 +28,6 @@ public class UserService {
     @Autowired
     private AuthenticationManager authenticationManager;
     @Autowired
-    private TokenProvider tokenProvider;
-    @Autowired
     private UserRepository userRepository;
     @Autowired
     private ViewObjectMappers viewObjectMappers;
@@ -40,6 +35,10 @@ public class UserService {
     private AuthUtil authUtil;
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private JwtUtils jwtUtils;
+    @Autowired
+    private AuthenticationService authenticationService;
 
     @Value( "${app.auth.jwtExpirationMsec}" )
     private long tokenExpirationMsec;
@@ -53,17 +52,18 @@ public class UserService {
      */
     public AuthResponse authenticateUser(final LoginRequest loginRequest) {
 
-        Authentication authentication = authenticationManager.authenticate(
+        val authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         loginRequest.getUsername(),
                         loginRequest.getPassword()
                 )
         );
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+        //SecurityContextHolder.getContext().setAuthentication(authentication);
+        authenticationService.setAuthenticationManager((UsernamePasswordAuthenticationToken) authentication);
 
-        final String token = tokenProvider.createToken(authentication);
-        final AuthResponse response = new AuthResponse(token);
+        val token = jwtUtils.generateToken(authentication);
+        val response = new AuthResponse(token);
         response.setTokenExpirationMsec(tokenExpirationMsec);
         return response;
     }
@@ -76,14 +76,16 @@ public class UserService {
      */
     @Transactional
     public User signupUser(final SignupRequest signupRequest) {
-        //check if email and password are filled
         if (isNullOrEmpty(signupRequest.getUsername()) || isNullOrEmpty(signupRequest.getEmail())) {
-            throw new IllegalArgumentException("Gebruikersnaam en emailadres zijn verplicht");
+            throw new IllegalArgumentException("Gebruikersnaam en emailadres zijn verplicht!");
         }
 
-        //check if user already exists
-        if (userRepository.findByUsernameIgnoreCase(signupRequest.getUsername()).isPresent()) {
-            throw new IllegalArgumentException("Deze gebruiker bestaat al.");
+        if (Boolean.TRUE.equals(userRepository.existsByUsernameIgnoreCase(signupRequest.getUsername()))) {
+            throw new IllegalArgumentException("Gebruikersnaam wordt al gebruikt!");
+        }
+
+        if (Boolean.TRUE.equals(userRepository.existsByEmail(signupRequest.getEmail()))) {
+            throw new IllegalArgumentException("Emailadres wordt al gebruikt!");
         }
 
         signupRequest.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
@@ -112,7 +114,7 @@ public class UserService {
     }
 
     public User getCurrentlyLoggedInUser() {
-        final Optional<User> user = userRepository.findById(getCurrentUserId());
+        val user = userRepository.findById(getCurrentUserId());
         return user.orElseThrow(() -> new RuntimeException("No current USER !!!!"));
     }
 

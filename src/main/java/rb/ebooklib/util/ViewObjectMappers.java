@@ -1,5 +1,6 @@
 package rb.ebooklib.util;
 
+import lombok.val;
 import org.springframework.stereotype.Component;
 import rb.ebooklib.dto.*;
 import rb.ebooklib.isbnapimodels.googleapi.GoogleBookResponse;
@@ -53,6 +54,7 @@ public class ViewObjectMappers {
         mainSettings.setId(mainSettingsDTO.getId());
         mainSettings.setLibraryMap(mainSettingsDTO.getLibraryMap());
         mainSettings.setCalibreCommand(mainSettingsDTO.getCalibreCommand());
+        mainSettings.setTempMap(mainSettingsDTO.getTempMap());
         return mainSettings;
     }
 
@@ -74,7 +76,6 @@ public class ViewObjectMappers {
         bookDTO.setIsRead(book.getIsRead());
         bookDTO.setLanguage(book.getLanguage());
         bookDTO.setTimestamp(book.getTimestamp());
-        bookDTO.setTempImageLink(book.getTempImageLink());
 
         if (book.getAuthors() == null) {
             List<Author> authors = new ArrayList<>();
@@ -217,12 +218,11 @@ public class ViewObjectMappers {
     }
 
     public User convertSignupRequestToUser(final SignupRequest signupRequest) {
-        final User user = new User();
+        val user = new User();
 
         user.setPassword(signupRequest.getPassword());
         user.setUsername(signupRequest.getUsername());
         user.setEmail(signupRequest.getEmail());
-        //user.setRoles(signupRequest.getRole());
 
         return user;
     }

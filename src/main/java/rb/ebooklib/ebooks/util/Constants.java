@@ -2,6 +2,8 @@ package rb.ebooklib.ebooks.util;
 
 public class Constants {
 
+    private Constants() {}
+
     public static final String CHARACTER_ENCODING = "UTF-8";
     public static final String DEFAULT_TOC_ID = "toc";
 
