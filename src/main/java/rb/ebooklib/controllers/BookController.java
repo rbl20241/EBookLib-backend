@@ -141,11 +141,12 @@ public class BookController {
                                                      @RequestParam(value = "language", required = false, defaultValue = "") final String language,
                                                      @RequestParam(value = "size", required = false, defaultValue = DEFAULT_PAGE_SIZE) final Integer size,
                                                      @RequestParam(value = "pageNo", required = false, defaultValue = "1") final Integer pageNo) {
+        var tmpQuery = query.equals("-") ? "" : query;
         var tmpGenre = genre.equals("-") ? "" : genre;
         var tmpCategory = category.equals("-") ? "" : category;
         var tmpExtension = extension.equals("-") ? "" : extension;
         var tmpLanguage = language.equals("-") ? "" : language;
-        final PageDTO<Book> pageDTO = bookService.getSearchBooks(whatToSearch, query, tmpGenre, tmpCategory, tmpExtension, tmpLanguage, size, pageNo);
+        final PageDTO<Book> pageDTO = bookService.getSearchBooks(whatToSearch, tmpQuery, tmpGenre, tmpCategory, tmpExtension, tmpLanguage, size, pageNo);
         return new ResponseEntity<>(pageDTO, HttpStatus.OK);
     }
 

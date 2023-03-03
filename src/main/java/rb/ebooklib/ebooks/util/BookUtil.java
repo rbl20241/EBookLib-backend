@@ -29,7 +29,7 @@ public class BookUtil {
 
     private static final Log log = LogFactory.getLog(BookUtil.class);
 
-    public static Boolean isAcceptedFile(String path) {
+    public static boolean isAcceptedFile(String path) {
         return path.endsWith(EPUB) ||
                 path.endsWith(MOBI) ||
                 path.endsWith(PDF) ||
