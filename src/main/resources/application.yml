@@ -1,0 +1,73 @@
+spring:
+  profiles:
+    active: @activatedProperties@
+  main:
+    banner-mode: off
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+  datasource:
+    url: jdbc:mysql://localhost:3306/ebooklib?autoReconnect=true&useSSL=false&useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull&serverTimezone=GMT
+    username: root
+    password: A1b2c3d*
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+    hibernate.ddl-auto: update
+    show-sql: false
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: rene.ordina@gmail.com
+    password: 9HVpn7UHWpu3cfV6
+    debug: true
+    auth: plain
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+            ssl.trust: smtp.gmail.com
+        transport:
+          protocol: smtp
+
+google:
+  api:
+    key: AIzaSyD70hai7T3tzM-9623kKOmLYIZJ4etb9M0
+
+
+logging:
+  level:
+    rb:
+      ebooklib: debug
+    org:
+      hibernate:
+        SQL: error
+  
+server:
+  port: 8085
+  
+#actuator endpoints
+management:
+  endpoints:
+    web:
+      exposure:
+        include: info, health, loggers, mappings
+
+#access.control.allow.origin=*
+access:
+  control:
+    allow:
+      origin: http://localhost:4200
+  
+# Properties for OAuth2 Basic authorisation
+app:
+  auth:
+    jwtCookieName: ebooklib
+    jwtSecret:  926D96C90030DD58429D2751AC1BDBBC
+    jwtExpirationMsec: 86400000

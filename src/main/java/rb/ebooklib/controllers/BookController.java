@@ -1,7 +1,5 @@
 package rb.ebooklib.controllers;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,8 +24,7 @@ import static rb.ebooklib.ebooks.util.BookUtil.*;
 @RequestMapping("/books")
 public class BookController {
 
-    private static final Logger log = LoggerFactory.getLogger(BookService.class);
-    private static final String defaultPageSize = "50";
+    private static final String DEFAULT_PAGE_SIZE = "50";
 
     @Autowired
     private BookService bookService;
@@ -113,7 +110,7 @@ public class BookController {
     }
 
     @GetMapping
-    public ResponseEntity<PageDTO<Book>> findAll(@RequestParam(value = "size", required = false, defaultValue = defaultPageSize) final Integer size,
+    public ResponseEntity<PageDTO<Book>> findAll(@RequestParam(value = "size", required = false, defaultValue = DEFAULT_PAGE_SIZE) final Integer size,
                                                  @RequestParam(value = "pageNo", required = false, defaultValue = "1") final Integer pageNo) {
         final PageDTO<Book> pageDTO = bookService.getAllBooks(size, pageNo);
         return new ResponseEntity<>(pageDTO, HttpStatus.OK);
@@ -121,7 +118,7 @@ public class BookController {
 
     @GetMapping("/category")
     public ResponseEntity<PageDTO<Book>> findByCategory(@RequestParam(value = "category") final String category,
-                                                        @RequestParam(value = "size", required = false, defaultValue = defaultPageSize) final Integer size,
+                                                        @RequestParam(value = "size", required = false, defaultValue = DEFAULT_PAGE_SIZE) final Integer size,
                                                         @RequestParam(value = "pageNo", required = false, defaultValue = "1") final Integer pageNo) {
         final PageDTO<Book> pageDTO = bookService.getBooksForCategory(category, size, pageNo);
         return new ResponseEntity<>(pageDTO, HttpStatus.OK);
@@ -129,7 +126,7 @@ public class BookController {
 
     @GetMapping("/genre")
     public ResponseEntity<PageDTO<Book>> findByGenre(@RequestParam(value = "genre") final String genre,
-                                                     @RequestParam(value = "size", required = false, defaultValue = defaultPageSize) final Integer size,
+                                                     @RequestParam(value = "size", required = false, defaultValue = DEFAULT_PAGE_SIZE) final Integer size,
                                                      @RequestParam(value = "pageNo", required = false, defaultValue = "1") final Integer pageNo) {
         final PageDTO<Book> pageDTO = bookService.getBooksForGenre(genre, size, pageNo);
         return new ResponseEntity<>(pageDTO, HttpStatus.OK);
@@ -137,14 +134,18 @@ public class BookController {
 
     @GetMapping("/search")
     public ResponseEntity<PageDTO<Book>> searchBooks(@RequestParam(value = "whatToSearch") final String whatToSearch,
-                                                             @RequestParam(value = "query") final String query,
-                                                             @RequestParam(value = "genre") final String genre,
-                                                             @RequestParam(value = "category") final String category,
-                                                             @RequestParam(value = "extension") final String extension,
-                                                             @RequestParam(value = "language") final String language,
-                                                             @RequestParam(value = "size", required = false, defaultValue = defaultPageSize) final Integer size,
-                                                             @RequestParam(value = "pageNo", required = false, defaultValue = "1") final Integer pageNo) {
-        final PageDTO<Book> pageDTO = bookService.getSearchBooks(whatToSearch, query, genre, category, extension, language, size, pageNo);
+                                                     @RequestParam(value = "query") final String query,
+                                                     @RequestParam(value = "genre", required = false, defaultValue = "") final String genre,
+                                                     @RequestParam(value = "category", required = false, defaultValue = "") final String category,
+                                                     @RequestParam(value = "extension", required = false, defaultValue = "") final String extension,
+                                                     @RequestParam(value = "language", required = false, defaultValue = "") final String language,
+                                                     @RequestParam(value = "size", required = false, defaultValue = DEFAULT_PAGE_SIZE) final Integer size,
+                                                     @RequestParam(value = "pageNo", required = false, defaultValue = "1") final Integer pageNo) {
+        var tmpGenre = genre.equals("-") ? "" : genre;
+        var tmpCategory = category.equals("-") ? "" : category;
+        var tmpExtension = extension.equals("-") ? "" : extension;
+        var tmpLanguage = language.equals("-") ? "" : language;
+        final PageDTO<Book> pageDTO = bookService.getSearchBooks(whatToSearch, query, tmpGenre, tmpCategory, tmpExtension, tmpLanguage, size, pageNo);
         return new ResponseEntity<>(pageDTO, HttpStatus.OK);
     }
 
